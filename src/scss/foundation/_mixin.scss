@@ -1,0 +1,12 @@
+@use "./variables" as var;
+
+$breakpoints: (
+  xs: var.$contents-width-xs,
+  sm: var.$contents-width-sm,
+) !default;
+
+@mixin mq-down($breakpoint) {
+  @media only screen and ( max-width: #{map-get($breakpoints, $breakpoint) - 1px} ) {
+    @content;
+  }
+}

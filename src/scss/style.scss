@@ -1,0 +1,111 @@
+// Foundation
+* {
+    font-family: 'Lora', serif;
+    font-size: 18px;
+}
+
+#main {
+    position: absolute;
+    margin: auto;
+    top:0; bottom:0; left:0; right: 0;
+    transform: scale(0.5);
+    transform-origin: top left;
+}
+
+canvas {
+    border: solid 1px #000000;
+}
+
+.menu {
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin: 4px;
+    display: none;
+    flex-direction: column;
+    max-height: 480px;
+    border: solid 1px #000000;
+    background-color: #ffffff;
+    align-items: flex-start;
+    align-content: flex-start;
+}
+
+.menu-item {
+    padding: 8px 12px 8px 12px;
+    min-width: 80px;
+    font-family: monospace;
+    font-size: 12px;
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
+}
+
+.menu-item:hover {
+    background-color: #000;
+    color: #fff;
+}
+
+.color-menu {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 4px;
+    display: none;
+    flex-direction: column;
+    max-height: 480px;
+    border: solid 1px #000000;
+    background-color: #ffffff;
+    align-items: flex-start;
+    align-content: flex-start;
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
+}
+
+.color-menu .section {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 8px;
+    align-items: center;
+    width: 152px;
+}
+.color-menu .section .swatch {
+    flex-basis: 32px;
+    width: 32px;
+    height: 32px;
+    border: solid 1px #000000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-family: monospace;
+}
+
+.color-menu > .section:not(:last-child) {
+    border-bottom: solid 1px #000;
+    padding-bottom: 8px;
+}
+
+.color-input {
+    height: 24px;
+    width: 72px;
+    border: solid 1px #000000;
+    outline: none;
+    box-sizing: border-box;
+    padding: 8px;
+    font-size: 12px;
+    font-family: monospace;
+}
+
+.circle-button {
+    height: 32px;
+    width: 32px;
+    border-radius: 32px;
+    background-color: #000;
+    color: #fff;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

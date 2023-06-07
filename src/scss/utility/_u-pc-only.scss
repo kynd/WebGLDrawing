@@ -1,0 +1,7 @@
+@use "../foundation" as global;
+
+.u-pc-only {
+  @include global.mq-down(sm) {
+    display: none;
+  }
+}

@@ -1,0 +1,8 @@
+@use "../foundation" as global;
+
+.u-sp-only {
+  display: none;
+  @include global.mq-down(sm){
+    display: block;
+  }
+}
