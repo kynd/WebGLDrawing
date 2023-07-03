@@ -3,28 +3,21 @@ import * as THREE from 'three';
 
 import { DraggableTool } from './DraggableTool.js';
 import { v, line, disposeObject, createBezierCP, createBezierCP2, cpToBezier, stripSidesFromArray, stripFromSides} from "../utils/DrawingUtil.js"
-import { loadText } from '../utils/FileUtil.js'
-import { CyclePalette, palette01 } from '../utils/ColorUtil.js';
 import { FloatDataTexture} from '../utils/FloatDataTexture.js';
 
 
 export class StrokeDraggableTool extends DraggableTool {
     static ready = false;
     static async init() {
-        StrokeDraggableTool.vertexShaderSource = await loadText('../shaders/common.vert');
-        StrokeDraggableTool.fragmentShaderSource = await loadText('../shaders/StrokeDraggableTool/StrokeDraggableTool.frag');
-        StrokeDraggableTool.palette = new CyclePalette(palette01);
+        await DraggableTool.initMaterials();
         StrokeDraggableTool.ready = true;
     }
 
-    constructor() {
-        super();
+    constructor(context) {
+        super(context);
         this.width = Math.random() * 200 + 60;
         this.sideBufferLength = 2048;
         this.sideTexture = new FloatDataTexture(null, this.sideBufferLength, 2);
-        this.cA = this.constructor.palette.get();
-        this.cB = this.constructor.palette.get();
-        this.count = 0;
     }
 
     updateViewsCreateCustom() {
@@ -76,14 +69,9 @@ export class StrokeDraggableTool extends DraggableTool {
 
     updateMainObj() {
         if (!this.mainObj) {
-            const stripMaterial = new THREE.ShaderMaterial({
-                vertexShader: this.constructor.vertexShaderSource,
-                fragmentShader: this.constructor.fragmentShaderSource,
-                uniforms: {
-                    res: { value: new THREE.Vector2(this.data.context.width, this.data.context.height)},
-                }
-            });
-            this.mainObj = new THREE.Mesh(new THREE.BufferGeometry(), stripMaterial);this.mainObj.toolRef = this;
+            const mainMaterial = this.getNewMaterial(this.context.selectedMaterial);
+            this.mainObj = new THREE.Mesh(new THREE.BufferGeometry(), mainMaterial);
+            this.mainObj.toolRef = this;
         }
         this.sides = stripSidesFromArray(this.bezierPoints, this.width);
 
@@ -113,13 +101,6 @@ export class StrokeDraggableTool extends DraggableTool {
         this.updateMainUniforms();
     }
     
-    updateMainUniforms() {
-        const uniforms = this.mainObj.material.uniforms;
-        uniforms.cA = {value: new THREE.Color(this.cA).toArray()}
-        uniforms.cB = {value: new THREE.Color(this.cB).toArray()}
-    }
-
-
     pointerDown() {
         if (this.state != DraggableTool.states.CREATE) {
             return DraggableTool.results.END;
@@ -167,80 +148,3 @@ export class StrokeDraggableTool extends DraggableTool {
     }
 }
 
-
-export class StrokeSamplerDraggableTool extends StrokeDraggableTool {
-    static ready = false;
-    static async init() {
-        StrokeSamplerDraggableTool.vertexShaderSource = await loadText('../shaders/common.vert');
-        StrokeSamplerDraggableTool.fragmentShaderSource = await loadText('../shaders/StrokeDraggableTool/StrokeSamplerDraggableTool.frag');
-        StrokeSamplerDraggableTool.ready = true;
-    }
-
-    updateMainUniforms() {
-        const nSideLength = Math.min(this.sides[0].length, this.sides[1].length);
-
-        const uniforms = this.mainObj.material.uniforms;
-        uniforms.nSidePoints = {value: nSideLength};
-        uniforms.offset = {value: (this.count % 360) / 360};
-        uniforms.maxSidePoints = {value: this.sideBufferLength};
-        uniforms.canvasTexture = {value: this.data.canvasTexture};
-        uniforms.referenceTexture = {value: this.data.referenceTexture};
-        uniforms.sides = {value: this.sideTexture.texture};
-    }
-
-    updateViewsAnimateCustom() {
-        if (!this.origin) {
-            this.saveOrigin();
-        }
-        this.count ++;
-    }
-}
-
-export class StrokeStripeSamplerDraggableTool extends StrokeDraggableTool {
-    static ready = false;
-    static async init() {
-        StrokeStripeSamplerDraggableTool.vertexShaderSource = await loadText('../shaders/common.vert');
-        StrokeStripeSamplerDraggableTool.fragmentShaderSource = await loadText('../shaders/StrokeDraggableTool/StrokeStripeSamplerDraggableTool.frag');
-        StrokeStripeSamplerDraggableTool.ready = true;
-    }
-
-    updateMainUniforms() {
-        const nSideLength = Math.min(this.sides[0].length, this.sides[1].length);
-
-        const uniforms = this.mainObj.material.uniforms;
-        uniforms.nSidePoints = {value: nSideLength};
-        uniforms.maxSidePoints = {value: this.sideBufferLength};
-        uniforms.canvasTexture = {value: this.data.canvasTexture};
-        uniforms.referenceTexture = {value: this.data.referenceTexture};
-        uniforms.sides = {value: this.sideTexture.texture};
-    }
-}
-
-export class StrokeStripeDraggableTool extends StrokeDraggableTool {
-    static ready = false;
-    static async init() {
-        StrokeStripeDraggableTool.vertexShaderSource = await loadText('../shaders/common.vert');
-        StrokeStripeDraggableTool.fragmentShaderSource = await loadText('../shaders/StrokeDraggableTool/StrokeStripeDraggableTool.frag');
-        StrokeStripeDraggableTool.palette = new CyclePalette(palette01);
-        StrokeStripeDraggableTool.ready = true;
-    }
-
-    updateMainUniforms() {
-        if (!this.colors) {
-            this.colors = this.data.colors;
-        }
-
-        const nSideLength = Math.min(this.sides[0].length, this.sides[1].length);
-
-        const uniforms = this.mainObj.material.uniforms;
-        uniforms.nSidePoints = {value: nSideLength};
-        uniforms.maxSidePoints = {value: this.sideBufferLength};
-        uniforms.canvasTexture = {value: this.data.canvasTexture};
-        uniforms.referenceTexture = {value: this.data.referenceTexture};
-        uniforms.sides = {value: this.sideTexture.texture};
-        uniforms.c0 = {value: this.colors[0].toArray()};
-        uniforms.c1 = {value: this.colors[1].toArray()};
-        uniforms.c2 = {value: this.colors[2].toArray()};
-        uniforms.c3 = {value: this.colors[3].toArray()};
-    }
-}

@@ -1,14 +1,14 @@
 
 import * as THREE from 'three';
 import { DraggableTool } from './DraggableTool.js';
-import { v, line, disposeObject, quadFromCorners } from "../utils/DrawingUtil.js"
+import { v, line, disposeObject, ovalFromCorners } from "../utils/DrawingUtil.js"
 import { FloatDataTexture } from "../utils/FloatDataTexture.js"
 
-export class QuadDraggableTool extends DraggableTool {
+export class OvalDraggableTool extends DraggableTool {
     static ready = false;
     static async init() {
         await DraggableTool.initMaterials();
-        QuadDraggableTool.ready = true;
+        OvalDraggableTool.ready = true;
     }
 
     constructor(context) {
@@ -74,7 +74,7 @@ export class QuadDraggableTool extends DraggableTool {
             [this.vertices[2].clone(), this.vertices[3].clone]
         ]
 
-        const mainGeometry = quadFromCorners(this.vertices);
+        const mainGeometry = ovalFromCorners(this.vertices);
         this.mainObj.geometry = mainGeometry;
 
         this.updateMainUniforms();

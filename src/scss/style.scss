@@ -68,7 +68,7 @@ canvas {
     gap: 8px;
     margin: 8px;
     align-items: center;
-    width: 152px;
+    width: 192px;
 }
 .color-menu .section .swatch {
     flex-basis: 32px;
@@ -89,7 +89,7 @@ canvas {
 
 .color-input {
     height: 24px;
-    width: 72px;
+    width: 112px;
     border: solid 1px #000000;
     outline: none;
     box-sizing: border-box;
@@ -102,6 +102,7 @@ canvas {
     height: 32px;
     width: 32px;
     border-radius: 32px;
+    font-family: 'Courier New', Courier, monospace;
     background-color: #000;
     color: #fff;
     font-weight: bold;

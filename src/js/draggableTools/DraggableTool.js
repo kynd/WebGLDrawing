@@ -1,5 +1,6 @@
 
 import * as THREE from 'three';
+import { loadText } from '../utils/FileUtil.js'
 
 export class DraggableTool {
     static states = {
@@ -13,11 +14,61 @@ export class DraggableTool {
         CONTINUE: 2,
         ABANDON: 3
     }
+    
+    static materials = {
+        Experiment: {
+            source: '../shaders/DrawingTools/experiment.frag',
+            key: "1"
+        },
+        STRIPE_X: {
+            source: '../shaders/DrawingTools/stripe.frag',
+            key: "2",
+            uniforms: {dir : 0}
+        },
+        STRIPE_Y: {
+            source: '../shaders/DrawingTools/stripe.frag',
+            key: "3",
+            uniforms: {dir : 1}
+        },
+        GRADIENT: {
+            source: '../shaders/DrawingTools/gradient.frag',
+            key: "4"
+        }
+    }
 
-    constructor() {
+    static vertexShaderSource = "";
+
+    constructor(context) {
+        this.context = context;
         this.vertices = [];
         this.handles = [];
         this.state = DraggableTool.states.CREATE;
+    }
+
+    static async initMaterials() {
+        if (DraggableTool.vertexShaderSource) { return; }
+        DraggableTool.vertexShaderSource = await loadText('../shaders/common.vert');
+        for (let key in DraggableTool.materials) {
+            if (DraggableTool.materials.hasOwnProperty(key)) {
+                const fragmentShaderSource = await loadText(DraggableTool.materials[key].source);
+                DraggableTool.materials[key].source = fragmentShaderSource;
+            }
+        }
+    }
+
+    getNewMaterial(key) {
+        const m = DraggableTool.materials[key];
+        const material = new THREE.ShaderMaterial({
+            vertexShader:  DraggableTool.vertexShaderSource,
+            fragmentShader: m.source,
+            transparent: true
+        });
+        if (m.uniforms) {
+            for (let key in m.uniforms) {
+                material.uniforms[key] = {value: m.uniforms[key]};
+            }
+        }
+        return material;
     }
 
     update(data) {
@@ -69,6 +120,28 @@ export class DraggableTool {
         this.vertices[idx].y = this.verticeOrigins[idx].y + ty;
         this.updateViewsMoveCustom();
         this.updateObjects();
+    }
+
+    updateMainUniforms() {
+        if (!this.colors) {
+            this.colors = [...this.context.colorSelector.selectionColors];
+        }
+
+        const nSideLength = Math.min(this.sides[0].length, this.sides[1].length);
+
+        const uniforms = this.mainObj.material.uniforms;
+        uniforms.nSidePoints = {value: nSideLength};
+        uniforms.maxSidePoints = {value: this.sideBufferLength};
+
+        uniforms.canvasTexture = {value: this.data.canvasTexture};
+        uniforms.referenceTexture = {value: this.data.referenceTexture};
+        uniforms.sides = {value: this.sideTexture.texture};
+
+        uniforms.c0 = {value: this.colors[0].toArray()};
+        uniforms.c1 = {value: this.colors[1].toArray()};
+        uniforms.c2 = {value: this.colors[2].toArray()};
+        uniforms.c3 = {value: this.colors[3].toArray()};
+        uniforms.res = { value: new THREE.Vector2(this.data.context.width, this.data.context.height)};
     }
 
     startAnimation() {

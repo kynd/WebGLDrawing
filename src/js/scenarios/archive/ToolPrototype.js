@@ -1,11 +1,11 @@
 import * as THREE from 'three';
-import { ScenarioBase } from "./ScenarioBase.js";
-import { PingPong } from '../scenes/PingPong.js';
-import { CircleSpinnerTool } from '../tools/CircleSpinnerTool.js';
-import { DragTapeTool } from '../tools/DragTapeTool.js';
-import { DrifterTool } from '../tools/DrifterTool.js';
-import { Menu } from "../utils/Menu.js";
-import { SimpleImageScene } from '../scenes/SimpleImageScene.js';
+import { ScenarioBase } from "../ScenarioBase.js";
+import { PingPong } from '../../scenes/PingPong.js';
+import { CircleSpinnerTool } from '../../tools/CircleSpinnerTool.js';
+import { DragTapeTool } from '../../tools/DragTapeTool.js';
+import { DrifterTool } from '../../tools/DrifterTool.js';
+import { Menu } from "../../utils/Menu.js";
+import { SimpleImageScene } from '../../scenes/SimpleImageScene.js';
 
 export class ToolPrototype extends ScenarioBase {
     constructor() {

@@ -67,6 +67,55 @@ export function quadFromCorners(corners) {
     return geometry;
 }
 
+
+export function ovalFromCorners(corners) {
+    const l0 = new Line().fromTwoPoints(corners[0], corners[2]);
+    const l1 = new Line().fromTwoPoints(corners[1], corners[3]);
+    let c = l0.getIntersectionPoint(l1);
+    if (!c) { c = corners[0].clone(); }
+    const center = v(c.x, c.y, 0);
+    const midPoints = [];
+    for (let i = 0; i < 4; i ++) {
+        midPoints.push(new THREE.Vector3().lerpVectors(corners[i], corners[(i + 1) % 4], 0.5));
+    }
+
+    const edgePoints = [];
+    const res = 24;
+    const cpt = (4/3) * Math.tan(Math.PI/8);
+    for (let i = 0; i < 4; i ++) {
+        const mi0 = i;
+        const mi1 = (i + 1) % 4;
+        const ci = (i + 1) % 4;
+        const cp0 = new THREE.Vector3().lerpVectors(midPoints[mi0], corners[ci], cpt);
+        const cp1 = new THREE.Vector3().lerpVectors(midPoints[mi1], corners[ci], cpt);
+        for (let j = 0; j < res; j ++) {
+            const t = j / res;
+            const p = qubicBezier(midPoints[mi0], cp0, cp1, midPoints[mi1], t);
+            edgePoints.push(p);
+        }
+    }
+
+    const positions = new Float32Array(edgePoints.length * 3 * 3);
+    const uvs = new Float32Array(edgePoints.length * 3 * 2);
+    for (let i = 0; i < edgePoints.length; i ++) {
+        const p0 = edgePoints[i];
+        const p1 = edgePoints[(i + 1) % edgePoints.length];
+        addPos(positions, i * 3, p0);
+        addPos(positions, i * 3 + 1, p1);
+        addPos(positions, i * 3 + 2, center);
+        const u0 = i / edgePoints.length;
+        const u1 = (i + 1) / edgePoints.length;
+
+        addUv(uvs, i * 3, [u0, 1]);
+        addUv(uvs, i * 3 + 1, [u1, 1]);
+        addUv(uvs, i * 3 + 2, [(u0 + u1) * 0.5, 0.0]);
+    }
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+    return geometry;
+}
+
 export function stripFromSides(side) {
     const n = Math.min(side[0].length, side[1].length);
     const arr = [];
@@ -132,7 +181,6 @@ export function stripSidesFromArray(arr, width) {
         for (let i = 0; i < arr.length - 1; i++) {
             const p0 = new v(arr[i].x, arr[i].y, 0.0);
             const p1 = new v(arr[i + 1].x, arr[i + 1].y, 0.0);
-            //console.log(p0, p1);
             const dir = new v(p1.x - p0.x, p1.y - p0.y, 0.0);
 
             const perp = dir.clone().applyAxisAngle(new v(0, 0, 1), Math.PI * 0.5).normalize();
@@ -213,7 +261,7 @@ export function disposeObject(obj) {
 export function qubicBezier(p0, p1, p2, p3, t) {
     const x = qubicBezier1D(p0.x, p1.x, p2.x, p3.x, t);
     const y = qubicBezier1D(p0.y, p1.y, p2.y, p3.y, t);
-    if (p0.z) {
+    if (p0.hasOwnProperty("z")) {
         const z = qubicBezier1D(p0.z, p1.z, p2.z, p3.z, t);
         return new THREE.Vector3(x, y, z);
     } else {

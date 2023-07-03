@@ -24,7 +24,8 @@ export class Menu {
         this.menuElm = $("<div>").prop({class: "menu"});
         def.forEach(item => {
             const itemElm = $("<div>").prop({class: "menu-item"});
-            itemElm.text(item.label + ` (${item.key})`);
+            const label = item.label + (item.key ? ` (${item.key})` : "");
+            itemElm.text(label);
             itemElm.on("click", ()=>{item.f()});
             this.menuElm.append(itemElm);
         })

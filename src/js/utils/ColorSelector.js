@@ -34,6 +34,10 @@ export class ColorSelector {
             this.selectionSwatches.push(swatch);
         });
 
+        this.randomButton = $("<div>").prop({class:"circle-button"}).text("r");
+        this.randomButton.on("click", this.randomize.bind(this));
+        this.selectionSectionElm.append(this.randomButton);
+        
         this.previewSwatch = $("<div>").prop({class: "swatch"});
         this.inputSectionElm.append(this.previewSwatch);
         this.input = $("<input>").prop({type:"text", spellcheck: false, class: "color-input"});
@@ -72,6 +76,13 @@ export class ColorSelector {
         this.librarySwatches.push(swatch);
     }
 
+    randomize() {
+        this.selectionColors.forEach((c, i)=> {
+            this.selectionColors[i] = this.libraryColors[Math.floor(Math.random() * this.libraryColors.length)];
+        });
+        this.update();
+    }
+
     generateLibraryFromImage(n, path) {
         const loader = new THREE.TextureLoader();
         loader.load (path, (texture)=> {
@@ -90,6 +101,7 @@ export class ColorSelector {
                 const b = pixel[2];
                 this.addLibraryColor(new THREE.Color(r / 255, g / 255, b / 255));
             }
+            this.randomize();
         }, undefined,
         (e)=> {
             console.err('An error occurred while loading the image.', e);

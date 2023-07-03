@@ -4,8 +4,9 @@ import { ScenarioBase } from "./ScenarioBase.js";
 import { PingPong } from '../scenes/PingPong.js';
 import { Menu } from "../utils/Menu.js";
 import { ColorSelector } from "../utils/ColorSelector.js";
-import { QuadStripeDraggableTool } from "../draggableTools/QuadDraggableTool.js"
-import { StrokeStripeDraggableTool } from "../draggableTools/StrokeDraggableTool.js"
+import { QuadDraggableTool } from "../draggableTools/QuadDraggableTool.js"
+import { OvalDraggableTool } from "../draggableTools/OvalDraggableTool.js"
+import { StrokeDraggableTool } from "../draggableTools/StrokeDraggableTool.js"
 import { SimpleImageScene } from '../scenes/SimpleImageScene.js';
 import { ShaderTextureMaker } from "../utils/ShaderTextureMaker.js"
 import { DraggableTool } from '../draggableTools/DraggableTool.js';
@@ -31,8 +32,9 @@ export class DraggableDrawingTool extends ScenarioBase {
 
     setToolList() {
         this.toolList = [
-            {label: "Stroke", key: "s", obj: StrokeStripeDraggableTool},
-            {label: "Quad", key: "q", obj: QuadStripeDraggableTool}
+            {label: "Oval", key: "o", obj: OvalDraggableTool},
+            {label: "Quad", key: "q", obj: QuadDraggableTool},
+            {label: "Stroke", key: "s", obj: StrokeDraggableTool}
         ]
     }
 
@@ -56,12 +58,25 @@ export class DraggableDrawingTool extends ScenarioBase {
         this.toolList.forEach((tool)=>{
             menuDef.push({label: tool.label, key: tool.key, f: ()=>{this.tool = tool.obj}});
             tool.obj.init();
-        })
+        });
         this.tool = this.toolList[0].obj;
         this.menu = new Menu(menuDef);
 
+
+        const fillMenuDef = [];
+        for (let key in DraggableTool.materials) {
+            if (!this.context.selectedMaterial) {
+                this.context.selectedMaterial = key;
+            }
+            if (DraggableTool.materials.hasOwnProperty(key)) {
+                fillMenuDef.push({label: key, key: DraggableTool.materials[key].key, f: ()=>{this.context.selectedMaterial = key}});
+            }
+        }
+        this.fillMenu = new Menu(fillMenuDef, "]");
+
         this.colorSelector = new ColorSelector();
-        this.colorSelector.generateLibraryFromImage(24, '../img/hallway.jpg')
+        this.context.colorSelector = this.colorSelector;
+        this.colorSelector.generateLibraryFromImage(24, '../img/palette01.png')
     }
 
     async asyncStart() {
@@ -83,7 +98,7 @@ export class DraggableDrawingTool extends ScenarioBase {
         this.shaderTexture.update();
         this.context.renderer.autoClear = false;
         this.context.renderer.render( this.pingPong.scene, this.context.camera);
-        this.context.renderer.render( this.imageScene.scene, this.context.camera);
+        //this.context.renderer.render( this.imageScene.scene, this.context.camera);
         
         this.context.renderer.render( this.mainScene, this.context.camera);
         if (this.isPreviewing) {
@@ -121,16 +136,31 @@ export class DraggableDrawingTool extends ScenarioBase {
         }
     }
 
+    bringObjToTop(target) {
+        const idx = this.toolInstances.findIndex(t => t === target);
+
+        if (idx !== -1) {
+            this.toolInstances.splice(idx, 1)[0];
+            this.toolInstances.push(target);
+        }
+        this.toolInstances.forEach((tool, i) => {
+            tool.mainObj.renderOrder = i;
+        })
+    }
+
     pointerDownNew(evt) {
         this.isDragging = true;
         this.dragStartPoint = this.getPointerCrd(evt);
         if (this.hitTargets.length > 0 && this.hitTargets[0].object) {
             this.currentTool = this.hitTargets[0].object.toolRef;
-            this.currentTool.startDrag(this.hitTargets[0].object);
-            this.mainScene.remove(this.currentTool.mainObj);
-            this.mainScene.add(this.currentTool.mainObj);
+            if (this.currentTool) {
+                this.currentTool.startDrag(this.hitTargets[0].object);
+                this.bringObjToTop(this.currentTool);
+            } else {
+                this.isDragging = false;
+            }
         } else {
-            this.currentTool = new this.tool();
+            this.currentTool = new this.tool(this.context);
             this.updateTool(this.currentTool);
             this.scene.add(this.currentTool.previewObj);
             this.mainScene.add(this.currentTool.mainObj);
