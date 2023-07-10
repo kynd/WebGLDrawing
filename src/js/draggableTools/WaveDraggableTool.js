@@ -2,22 +2,25 @@
 import * as THREE from 'three';
 
 import { DraggableTool } from './DraggableTool.js';
-import { v, line, disposeObject, createBezierCP, createBezierCP2, cpToBezier, stripSidesFromArray } from "../utils/DrawingUtil.js"
-
+import { v, line, disposeObject, createBezierCP, createBezierCP2, cpToBezier, stripSidesFromArray} from "../utils/DrawingUtil.js"
 import { stripGeomDataFromSides, dataToGeom} from "../utils/GeomUtil.js"
 import { FloatDataTexture} from '../utils/FloatDataTexture.js';
+import { Vector3 } from 'three';
 
 
-export class StrokeDraggableTool extends DraggableTool {
+export class WaveDraggableTool extends DraggableTool {
     static ready = false;
     static async init() {
         await DraggableTool.initMaterials();
-        StrokeDraggableTool.ready = true;
+        WaveDraggableTool.ready = true;
     }
 
     constructor(context) {
         super(context);
-        this.width = Math.random() * 200 + 60;
+        this.width = context.toolParams.sizeA * 20;
+        this.waveWidth = context.toolParams.sizeB * 40;
+        this.sideBufferLength = 2048;
+        this.sideTexture = new FloatDataTexture(null, this.sideBufferLength, 2);
     }
 
     updateViewsCreateCustom() {
@@ -33,8 +36,21 @@ export class StrokeDraggableTool extends DraggableTool {
 
     updateObjectsCommon() {
         if (this.vertices.length > 1) {
-            const cp = createBezierCP(this.vertices);
-            this.bezierPoints = cpToBezier(cp);
+            const cp = createBezierCP2(this.vertices);
+            this.bezierPoints = cpToBezier(cp, 8);
+            let pp = this.bezierPoints[0].clone();
+            let d = 0;
+            this.bezierPoints.forEach((p, i) => {
+                    d += pp.distanceTo(p);
+                    const dir = p.clone().sub(pp).normalize();
+                    const perp = new Vector3(dir.y, -dir.x, 0);
+                    pp = p.clone();
+                    const ang = d /120 * Math.PI;
+                    p.add(perp.multiplyScalar(Math.cos(i) * this.waveWidth));
+                }
+            )
+            const cp2 = createBezierCP2(this.bezierPoints);
+            this.bezierPoints = cpToBezier(cp2, 8);
         }
     }
 
@@ -58,12 +74,11 @@ export class StrokeDraggableTool extends DraggableTool {
             }
         }
 
-        // CENTER LINE
+        // LINE
         if (this.lineObj) {
             disposeObject(this.lineObj);
         }
-
-        this.lineObj = line(this.bezierPoints, 0x000000);
+        this.lineObj = line(this.vertices, 0x000000);
         this.previewObj.add(this.lineObj);
     }
 
@@ -130,10 +145,6 @@ export class StrokeDraggableTool extends DraggableTool {
             const v = this.verticeOrigins[i0].clone().lerp(this.verticeOrigins[i1], t);
             vertice.copy(v);
         });
-    }
-
-    disposeCustom() {
-        if (this.sideTexture ) { this.sideTexture.dispose(); }
     }
 }
 

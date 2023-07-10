@@ -1,12 +1,9 @@
 varying vec2 vUv;
 varying vec3 vNormal;
+varying vec3 vInitialPosition;
 uniform vec2 res;
 
-uniform float nSidePoints;
-uniform float maxSidePoints;
-uniform float offset;
 uniform sampler2D referenceTexture;
-uniform sampler2D sides;
 uniform vec3 c0, c1, c2, c3;
 uniform sampler2D canvasTexture;
 

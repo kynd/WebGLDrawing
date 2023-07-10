@@ -28,6 +28,7 @@ canvas {
     background-color: #ffffff;
     align-items: flex-start;
     align-content: flex-start;
+    z-index: 1000;
 }
 
 .menu-item {
@@ -102,11 +103,28 @@ canvas {
     height: 32px;
     width: 32px;
     border-radius: 32px;
-    font-family: 'Courier New', Courier, monospace;
+    font-family: monospace;
+    font-size: 12px;
     background-color: #000;
     color: #fff;
     font-weight: bold;
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.tool-display {
+    font-family: monospace;
+    font-size: 12px;
+    position: absolute;
+    display: flex;
+    top: 4px;
+    left: 0;
+    right: 0;
+    margin: auto;
+    padding: 4px;
+    align-items: center;
+    justify-content: center;
+    height: 24px;
+    width: 320px;
 }

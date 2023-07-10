@@ -7,6 +7,9 @@ import { ColorSelector } from "../utils/ColorSelector.js";
 import { QuadDraggableTool } from "../draggableTools/QuadDraggableTool.js"
 import { OvalDraggableTool } from "../draggableTools/OvalDraggableTool.js"
 import { StrokeDraggableTool } from "../draggableTools/StrokeDraggableTool.js"
+import { SpiralDraggableTool } from "../draggableTools/SpiralDraggableTool.js"
+import { WaveDraggableTool } from "../draggableTools/WaveDraggableTool.js"
+import { BlobDraggableTool } from "../draggableTools/BlobDraggableTool.js"
 import { SimpleImageScene } from '../scenes/SimpleImageScene.js';
 import { ShaderTextureMaker } from "../utils/ShaderTextureMaker.js"
 import { DraggableTool } from '../draggableTools/DraggableTool.js';
@@ -20,6 +23,7 @@ export class DraggableDrawingTool extends ScenarioBase {
         this.asyncStart();
         this.isAnimating = false;
         this.isPreviewing = false;
+        this.isToolDisplayVisible = false;
         $("body").on("keydown", (evt)=> {
             if (evt.key === "Enter") {
                 this.toggleAnimation();
@@ -32,9 +36,12 @@ export class DraggableDrawingTool extends ScenarioBase {
 
     setToolList() {
         this.toolList = [
-            {label: "Oval", key: "o", obj: OvalDraggableTool},
+            {label: "Blob", key: "b", obj: BlobDraggableTool},
             {label: "Quad", key: "q", obj: QuadDraggableTool},
-            {label: "Stroke", key: "s", obj: StrokeDraggableTool}
+            {label: "Spiral", key: "c", obj: SpiralDraggableTool},
+            {label: "Wave", key: "w", obj: WaveDraggableTool},
+            {label: "Stroke", key: "s", obj: StrokeDraggableTool},
+            {label: "Oval", key: "o", obj: OvalDraggableTool}
         ]
     }
 
@@ -55,13 +62,14 @@ export class DraggableDrawingTool extends ScenarioBase {
         this.shaderTexture = new ShaderTextureMaker(this.context.width / 2, this.context.height / 2, '../shaders/ShaderTextureMakerTest.frag', this.context);
 
         const menuDef = [];
-        this.toolList.forEach((tool)=>{
-            menuDef.push({label: tool.label, key: tool.key, f: ()=>{this.tool = tool.obj}});
-            tool.obj.init();
+        this.toolList.forEach((toolDef)=>{
+            menuDef.push({label: toolDef.label, key: toolDef.key, f: ()=>{this.selectTool(toolDef)}});
+            toolDef.obj.init();
+            toolDef.params = {sizeA: 5, sizeB: 5}
         });
-        this.tool = this.toolList[0].obj;
-        this.menu = new Menu(menuDef);
+        this.selectTool(this.toolList[0])
 
+        this.menu = new Menu(menuDef);
 
         const fillMenuDef = [];
         for (let key in DraggableTool.materials) {
@@ -76,7 +84,36 @@ export class DraggableDrawingTool extends ScenarioBase {
 
         this.colorSelector = new ColorSelector();
         this.context.colorSelector = this.colorSelector;
-        this.colorSelector.generateLibraryFromImage(24, '../img/palette01.png')
+        this.colorSelector.generateLibraryFromImage(24, '../img/palette01.png');
+
+        $(document).on("keypress", (evt)=>{
+            console.log(evt.key)
+            if (evt.key == " ") { 
+                this.isToolDisplayVisible = !this.isToolDisplayVisible; this.updateToolDisplay(); }
+            if (evt.key == ",") { this.selectedToolDef.params.sizeA = Math.max(1, this.selectedToolDef.params.sizeA - 1); this.updateToolDisplay()}
+            if (evt.key == ".") { this.selectedToolDef.params.sizeA = Math.min(10, this.selectedToolDef.params.sizeA + 1); this.updateToolDisplay()}
+            if (evt.key == ";") { this.params.sizeB = Math.max(1, this.selectedToolDef.params.sizeB - 1); this.updateToolDisplay()}
+            if (evt.key == "z") { this.colorSelector.randomize(); }
+        
+        });
+    }
+
+    selectTool(toolDef) {
+        this.tool = toolDef.obj;
+        this.selectedToolDef = toolDef;
+        this.context.toolParams = toolDef.params;
+        this.updateToolDisplay();
+    }
+
+    updateToolDisplay() {
+        if (!this.toolDisplay) {
+            this.toolDisplay = $("<div>").prop({class:"tool-display"});
+            $("body").append(this.toolDisplay);
+        }
+        console.log(this.isToolDisplayVisible);
+        this.toolDisplay.css({display: this.isToolDisplayVisible ? "flex" : "none"});
+        console.log(this.selectedToolDef)
+        this.toolDisplay.html(`${this.selectedToolDef.label} | size A (,.): ${this.selectedToolDef.params.sizeA} | size B (;'): ${this.selectedToolDef.params.sizeB}`)
     }
 
     async asyncStart() {
@@ -111,6 +148,7 @@ export class DraggableDrawingTool extends ScenarioBase {
         this.context.pointer = this.pointerCrdToSceneCrd(this.getPointerCrd(evt));
         if (this.isDragging) {
             this.updateTool(this.currentTool);
+            this.bringObjToTop(this.currentTool);
         } else {
             const pointerCrd = this.getPointerCrdNormalized(evt);
             const hitTargets = [
@@ -155,7 +193,7 @@ export class DraggableDrawingTool extends ScenarioBase {
             this.currentTool = this.hitTargets[0].object.toolRef;
             if (this.currentTool) {
                 this.currentTool.startDrag(this.hitTargets[0].object);
-                this.bringObjToTop(this.currentTool);
+                //this.bringObjToTop(this.currentTool);
             } else {
                 this.isDragging = false;
             }
@@ -164,6 +202,7 @@ export class DraggableDrawingTool extends ScenarioBase {
             this.updateTool(this.currentTool);
             this.scene.add(this.currentTool.previewObj);
             this.mainScene.add(this.currentTool.mainObj);
+            //this.bringObjToTop(this.currentTool);
         }
     }
 
@@ -172,6 +211,7 @@ export class DraggableDrawingTool extends ScenarioBase {
             canvasTexture: this.pingPong.getCopyRenderTarget().texture,
             referenceTexture: this.imageScene.texture,
             context: this.context,
+            toolParams: this.selectedToolDef.params,
             colors:[...this.colorSelector.selectionColors]
         });
     }

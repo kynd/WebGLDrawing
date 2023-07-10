@@ -1,16 +1,19 @@
 varying vec2 vUv;
 varying vec3 vNormal;
+varying vec3 vInitialPosition;
 uniform vec2 res;
 
-uniform float nSidePoints;
-uniform float maxSidePoints;
-uniform float offset;
 uniform sampler2D referenceTexture;
-uniform sampler2D sides;
 uniform vec3 c0, c1, c2, c3;
 uniform sampler2D canvasTexture;
 
+void main( void ) {
+    vec2 sampCrd = (vInitialPosition.xy / res) + vec2(0.5);
+    vec4 samp = texture2D(referenceTexture, sampCrd);
+    gl_FragColor = samp;
+}
 
+/*
 vec2 uvToSampleCrd(vec2 uv) {
     float n = nSidePoints - 1.0;
     float y = fract(uv.y + offset);
@@ -27,8 +30,8 @@ void main( void ) {
     //sampCrd.y = max(0.0, sampCrd.y);
     vec2 crd = uvToSampleCrd(sampCrd);
 
-    float t = fract(crd.x / 24.0);
-    t = fract(vUv.y * 24.0);
+    float t = fract(crd.x / 4.0);
+    t = fract(vUv.y * 4.0);
     vec3 color = c0;
     if (t > 0.75) {
         color = c3;
@@ -37,6 +40,7 @@ void main( void ) {
     } else if (t > 0.25) {
         color = c1;
     }
-    float a = (vUv.x > 0.5) ? 0.0 : 1.0;
-    gl_FragColor = vec4(color, a);
+    //float a = (vUv.x > 0.5) ? 0.0 : 1.0;
+    gl_FragColor = vec4(color, 1.0);
 }
+*/

@@ -17,21 +17,21 @@ export class DraggableTool {
     
     static materials = {
         Experiment: {
-            source: '../shaders/DrawingTools/experiment.frag',
+            src: '../shaders/DrawingTools/experiment.frag',
             key: "1"
         },
         STRIPE_X: {
-            source: '../shaders/DrawingTools/stripe.frag',
+            src: '../shaders/DrawingTools/stripe.frag',
             key: "2",
             uniforms: {dir : 0}
         },
         STRIPE_Y: {
-            source: '../shaders/DrawingTools/stripe.frag',
+            src: '../shaders/DrawingTools/stripe.frag',
             key: "3",
             uniforms: {dir : 1}
         },
         GRADIENT: {
-            source: '../shaders/DrawingTools/gradient.frag',
+            src: '../shaders/DrawingTools/gradient.frag',
             key: "4"
         }
     }
@@ -42,15 +42,16 @@ export class DraggableTool {
         this.context = context;
         this.vertices = [];
         this.handles = [];
+        this.colors = [...this.context.colorSelector.selectionColors];
         this.state = DraggableTool.states.CREATE;
     }
 
     static async initMaterials() {
         if (DraggableTool.vertexShaderSource) { return; }
-        DraggableTool.vertexShaderSource = await loadText('../shaders/common.vert');
+        DraggableTool.vertexShaderSource = await loadText('../shaders/DrawingTools/drawing.vert');
         for (let key in DraggableTool.materials) {
             if (DraggableTool.materials.hasOwnProperty(key)) {
-                const fragmentShaderSource = await loadText(DraggableTool.materials[key].source);
+                const fragmentShaderSource = await loadText(DraggableTool.materials[key].src);
                 DraggableTool.materials[key].source = fragmentShaderSource;
             }
         }
@@ -61,7 +62,8 @@ export class DraggableTool {
         const material = new THREE.ShaderMaterial({
             vertexShader:  DraggableTool.vertexShaderSource,
             fragmentShader: m.source,
-            transparent: true
+            transparent: true,
+            side: THREE.DoubleSide
         });
         if (m.uniforms) {
             for (let key in m.uniforms) {
@@ -122,20 +124,9 @@ export class DraggableTool {
         this.updateObjects();
     }
 
-    updateMainUniforms() {
-        if (!this.colors) {
-            this.colors = [...this.context.colorSelector.selectionColors];
-        }
-
-        const nSideLength = Math.min(this.sides[0].length, this.sides[1].length);
-
-        const uniforms = this.mainObj.material.uniforms;
-        uniforms.nSidePoints = {value: nSideLength};
-        uniforms.maxSidePoints = {value: this.sideBufferLength};
-
+    updateMainUniforms() {const uniforms = this.mainObj.material.uniforms;
         uniforms.canvasTexture = {value: this.data.canvasTexture};
         uniforms.referenceTexture = {value: this.data.referenceTexture};
-        uniforms.sides = {value: this.sideTexture.texture};
 
         uniforms.c0 = {value: this.colors[0].toArray()};
         uniforms.c1 = {value: this.colors[1].toArray()};

@@ -2,22 +2,24 @@
 import * as THREE from 'three';
 
 import { DraggableTool } from './DraggableTool.js';
-import { v, line, disposeObject, createBezierCP, createBezierCP2, cpToBezier, stripSidesFromArray } from "../utils/DrawingUtil.js"
+import { v, line, disposeObject, blobFromVertices, createBezierCP, createBezierCP2, cpToBezier, stripSidesFromArray, stripFromSides} from "../utils/DrawingUtil.js"
 
-import { stripGeomDataFromSides, dataToGeom} from "../utils/GeomUtil.js"
+import { blobGeomDataFromVertices, dataToGeom} from "../utils/GeomUtil.js"
+
 import { FloatDataTexture} from '../utils/FloatDataTexture.js';
 
-
-export class StrokeDraggableTool extends DraggableTool {
+export class BlobDraggableTool extends DraggableTool {
     static ready = false;
     static async init() {
         await DraggableTool.initMaterials();
-        StrokeDraggableTool.ready = true;
+        BlobDraggableTool.ready = true;
     }
 
     constructor(context) {
         super(context);
         this.width = Math.random() * 200 + 60;
+        this.sideBufferLength = 2048;
+        this.sideTexture = new FloatDataTexture(null, this.sideBufferLength, 2);
     }
 
     updateViewsCreateCustom() {
@@ -49,6 +51,7 @@ export class StrokeDraggableTool extends DraggableTool {
             this.handles.push(handle);
             this.previewObj.add(handle);
         }
+
         for (let i = 0; i < this.handles.length; i ++) {
             if (i < this.vertices.length) {
                 this.handles[i].position.copy(this.vertices[i]);
@@ -58,12 +61,13 @@ export class StrokeDraggableTool extends DraggableTool {
             }
         }
 
-        // CENTER LINE
+        // LINE
         if (this.lineObj) {
             disposeObject(this.lineObj);
         }
 
-        this.lineObj = line(this.bezierPoints, 0x000000);
+        const vts = [...this.vertices, this.vertices[0]];
+        this.lineObj = line(vts, 0x000000);
         this.previewObj.add(this.lineObj);
     }
 
@@ -77,15 +81,33 @@ export class StrokeDraggableTool extends DraggableTool {
 
         if (this.vertices.length > 1 && this.vertices[0].distanceTo(this.vertices[this.vertices.length - 1]) > 4) {
             this.mainObj.geometry.dispose();
-            const data = stripGeomDataFromSides(this.sides)
+            const data = blobGeomDataFromVertices(this.vertices)
             if (this.state == DraggableTool.states.CREATE) {
                 this.initialPosition = { name: "initialPosition", data: data[0].data.slice(), stride: 3};
             }
             data.push(this.initialPosition);
-            this.mainObj.geometry = dataToGeom(data);
+            this.mainObj.geometry = dataToGeom(data);//stripFromSides(this.sides)
         }
 
+        /*
         const nSideLength = Math.min(this.sides[0].length, this.sides[1].length);
+
+        if (this.state == DraggableTool.states.CREATE) {
+            for (let i = 0; i < nSideLength; i ++) {
+                this.sideTexture.setPixel(i, 0, [
+                    this.sides[0][i].x, this.sides[0][i].y, 0, 1
+                ]);
+                this.sideTexture.setPixel(i, 1, [
+                    this.sides[1][i].x, this.sides[1][i].y, 0, 1
+                ]);
+            }
+            this.sideTexture.update();
+        }
+        
+        if (nSideLength > this.sideBufferLength) {
+            console.log(`WARNING: The strip has too many vertices (${nSideLength}). Keep it under ${this.sideBufferLength}` );
+        }
+        */
 
         this.updateMainUniforms();
     }

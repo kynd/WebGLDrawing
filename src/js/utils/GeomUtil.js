@@ -1,212 +1,226 @@
-export class Line {
-    constructor(a, b, c) {
-        this.a = a;
-        this.b = b;
-        this.c = c;
-    }
+import * as THREE from 'three';
+import { qubicBezier, createBezierCpLoop, cpToBezier } from './DrawingUtil.js';
+import { Line } from './MathUtil.js';
 
-    fromTwoPoints(p0, p1) {
-        let dx = p1.x - p0.x;
-        let dy = p1.y - p0.y;
-        this.a = dy;
-        this.b = -dx;
-        this.c = dx * p0.y - dy * p0.x;
-        return this;
-    }
-
-    fromPointAndAngle(p0, angle) {
-        let p1 = { x: p0.x + Math.cos(angle), y: p0.y + Math.sin(angle) };
-        return this.fromTwoPoints(p0, p1);
-    }
-
-    intersects(o) {
-        if (o instanceof Line) {
-            let d = this.a * o.b - o.a * this.b;
-            return d != 0.0;
-        } else if (o instanceof LineSegment) {
-            let t1 = this.a * o.p0.x + this.b * o.p0.y + this.c;
-            let t2 = this.a * o.p1.x + this.b * o.p1.y + this.c;
-            return t1 * t2 <= 0;
-        }
-        return undefined;
-    }
-
-    getIntersectionPoint(o) {
-        if (o instanceof Line) {
-            let d = this.a * o.b - o.a * this.b;
-            if (d == 0.0) { return undefined; }
-            let x = (this.b * o.c - o.b * this.c) / d;
-            let y = (o.a * this.c - this.a * o.c) / d;
-            return createVector(x, y);
-        } else if (o instanceof LineSegment) {
-            if (!this.intersects(o)) { return undefined; }
-            return this.getIntersectionPoint(o.toLine());
-        }
-        return undefined;
-    }
-
-    getAngle() {
-        return atan2(this.a, -this.b);
-    }
-
-    getPerpendicular(p) {
-        return new Line(this.b, -this.a, this.a * p.y - this.b * p.x);
-    }
-
-    getParallel(p) {
-        return new Line(this.a, this.b, -this.a * p.x - this.b * p.y);
-    }
-
-    getNearestPoint(p) {
-        let l = this.getPerpendicular(p);
-        return this.getIntersectionPoint(l);
+function addAttrData(arr, idx, size, data) {
+    for (let i = 0; i < size; i ++) {
+        arr[idx * size + i] = data[i];
     }
 }
 
-
-export class LineSegment {
-    constructor(x0, y0, x1, y1) {
-        this.p0 = createVector(x0, y0);
-        this.p1 = createVector(x1, y1);
-    }
-
-    fromTwoPoints(p0, p1) {
-        this.p0 = p0;
-        this.p1 = p1;
-        return this;
-    }
-
-    fromTwoPointsAndLength(p0, p1, length) {
-        this.p0 = p0;
-        let n = p1.copy().sub(p0).normalize();
-        this.p1 = n.mult(length).add(p0);
-        return this;
-    }
-
-    toLine() {
-        return new Line().fromTwoPoints(this.p0, this.p1);
-    }
-
-    intersects(o) {
-        if (o instanceof Line) {
-            let t0 = o.a * this.p0.x + o.b * this.p0.y + o.c;
-            let t1 = o.a * this.p1.x + o.b * this.p1.y + o.c;
-            return t0 * t1 < 0;
-        } else if (o instanceof LineSegment) {
-            return this.intersects(o.toLine()) && o.intersects(this.toLine());
-        }
-        return undefined;
-    }
-
-    getIntersectionPoint(o) {
-        if (o instanceof Line) {
-            if (!this.intersects(o)) { return undefined; }
-            return o.getIntersectionPoint(this.toLine());
-        } else if (o instanceof LineSegment) {
-            if (!this.intersects(o)) { return undefined; }
-            return o.toLine().getIntersectionPoint(this.toLine());
-        }
-        return undefined;
-    }
-
-    getAngle() {
-        return atan2(this.p1.y - this.p0.y, this.p1.x - this.p0.x);
-    }
-
-    getLength() {
-        return p0.dist(p1);
-    }
-
-    getNearestPoint(p) {
-        if (this.p1.copy().sub(this.p0).dot(p.copy().sub(this.p0)) < 0) return this.p0;
-        if (this.p0.copy().sub(this.p1).dot(p.copy().sub(this.p1)) < 0) return this.p1;
-        return this.toLine().getNearestPoint(p);
-    }
-
-    getBisection() {
-        let o = this.getMidPoint();
-        return this.toLine().getPerpendicular(o);
-    }
-
-    getMidPoint() {
-        return this.p0.copy().add(this.p1).mult(0.5);
-    }
-
-    getPerpendicular(p) {
-        return this.toLine().getPerpendicular(p);
-    }
-
-    getParallel(p) {
-        return this.toLine().getParallel(p);
-    }
+function addPosAttrData(arr, idx, p) {
+    arr[idx * 3] = p.x;
+    arr[idx * 3 + 1] = p.y;
+    arr[idx * 3 + 2] = p.z;
 }
 
-export class Circle {
-    constructor(x, y, radius) {
-        this.center = createVector(x, y);
-        this.radius = radius;
+export function dataToGeom(data) {
+    const geometry = new THREE.BufferGeometry();
+    data.forEach((attr)=>{
+        geometry.setAttribute(attr.name, new THREE.BufferAttribute(attr.data, attr.stride));
+    });
+    return geometry;
+}
+
+export function stripGeomDataFromSides(side) {
+    const n = Math.min(side[0].length, side[1].length);
+    const arr = [];
+    for (let i = 0; i < n; i++) {
+        arr.push(side[0][i]);
+        arr.push(side[1][i]);
+    }
+    return stripGeomDataFromArray(arr);
+}
+
+export function stripGeomDataFromArray(vertices) {
+    const positions = new Float32Array(vertices.length * 18);
+    const uvs = new Float32Array(vertices.length * 12);
+
+    function setPos(idx, p) {
+        positions[idx * 3] = p.z;
+        positions[idx * 3 + 1] = p.y;
+        positions[idx * 3 + 2] = p.x;
     }
 
-    fromCenterAndRadius(center, radius) {
-        this.center = center;
-        this.radius = radius;
-        return this;
+    const n = vertices.length / 2;
+    for (let i = 0; i < n - 1; i++) {
+        const p0 = vertices[i * 2]
+        const p1 = vertices[i * 2 + 1]
+        const p2 = vertices[i * 2 + 2]
+        const p3 = vertices[i * 2 + 3]
+        const u0 = i / (n - 1);
+        const u1 = (i + 1) / (n - 1);
+        addPosAttrData(positions, i * 6 + 0, p2);
+        addPosAttrData(positions, i * 6 + 1, p1);
+        addPosAttrData(positions, i * 6 + 2, p0);
+        addPosAttrData(positions, i * 6 + 3, p2);
+        addPosAttrData(positions, i * 6 + 4, p3);
+        addPosAttrData(positions, i * 6 + 5, p1);
+        addAttrData(uvs, i * 6 + 0, 2, [0, u1]);
+        addAttrData(uvs, i * 6 + 1, 2, [1, u0]);
+        addAttrData(uvs, i * 6 + 2, 2, [0, u0]);
+        addAttrData(uvs, i * 6 + 3, 2, [0, u1]);
+        addAttrData(uvs, i * 6 + 4, 2, [1, u1]);
+        addAttrData(uvs, i * 6 + 5, 2, [1, u0]);
     }
-
-    fromCenterAndPoint(center, p) {
-        this.center = center;
-        this.radius = center.dist(p);
-        return this;
-    }
-
-    fromThreePoints(p0, p1, p2) {
-        let x = ((p0.y - p2.y) * (p0.y * p0.y - p1.y * p1.y + p0.x * p0.x - p1.x * p1.x)
-            - (p0.y - p1.y) * (p0.y * p0.y - p2.y * p2.y + p0.x * p0.x - p2.x * p2.x))
-            / (2 * (p0.y - p2.y) * (p0.x - p1.x)
-                - 2 * (p0.y - p1.y) * (p0.x - p2.x));
-
-        let y = ((p0.x - p2.x) * (p0.x * p0.x - p1.x * p1.x + p0.y * p0.y - p1.y * p1.y)
-            - (p0.x - p1.x) * (p0.x * p0.x - p2.x * p2.x + p0.y * p0.y - p2.y * p2.y))
-            / (2 * (p0.x - p2.x) * (p0.y - p1.y) - 2 * (p0.x - p1.x) * (p0.y - p2.y));
-        this.center = createVector(x, y);
-        this.radius = this.center.dist(p0);
-        return this;
-    }
-
-    getIntersectionPoints(o) {
-        let points = [];
-        if (o instanceof Line) {
-            let l = o.a * o.a + o.b * o.b;
-            let k = o.a * this.center.x + o.b * this.center.y + o.c;
-            let d = l * this.radius * this.radius - k * k;
-            if (d > 0) {
-                let ds = sqrt(d);
-                let apl = o.a / l;
-                let bpl = o.b / l;
-                let xc = this.center.x - apl * k;
-                let yc = this.center.y - bpl * k;
-                let xd = bpl * ds;
-                let yd = apl * ds;
-                points.push(createVector(xc - xd, yc + yd));
-                points.push(createVector(xc + xd, yc - yd));
-            } else if (d == 0) {
-                points.push(createVector(this.center.x - o.a / l, this.center.y - o.b * k / l));
-            }
-        } else if (o instanceof LineSegment) {
-            let l = o.toLine();
-            let temp = [];
-            temp = this.getIntersectionPoints(l, this);
-            for (let i = 0; i < temp.length; i++) {
-                let d0 = (o.p0.copy().sub(o.p1)).dot(temp[i].copy().sub(o.p1));
-                let d1 = (o.p1.copy().sub(o.p0)).dot(temp[i].copy().sub(o.p0));
-                if (d0 >= 0 && d1 >= 0) points.push(temp[i]);
-            }
-        }
-        return points;
-    }
+    return [
+        { name:"position", data:positions, stride: 3},
+        { name:"uv", data:uvs, stride: 2 }
+    ];
 }
 
 
-function createVector(x, y) {
-    return {x, y};
+export function quadGeomDataFromCorners(corners) {
+    const l0 = new Line().fromTwoPoints(corners[0], corners[2]);
+    const l1 = new Line().fromTwoPoints(corners[1], corners[3]);
+    let c = l0.getIntersectionPoint(l1);
+    if (!c) { c = corners[0].clone(); }
+
+    const center = new THREE.Vector3(c.x, c.y, 0);
+    const positions = new Float32Array(12 * 3);
+    const uvs = new Float32Array(12 * 2);
+    addPosAttrData(positions, 0, corners[0]);
+    addPosAttrData(positions, 1, corners[1]);
+    addPosAttrData(positions, 2, center);
+    addPosAttrData(positions, 3, corners[1]);
+    addPosAttrData(positions, 4, corners[2]);
+    addPosAttrData(positions, 5, center);
+    addPosAttrData(positions, 6, corners[2]);
+    addPosAttrData(positions, 7, corners[3]);
+    addPosAttrData(positions, 8, center);
+    addPosAttrData(positions, 9, corners[3]);
+    addPosAttrData(positions, 10, corners[0]);
+    addPosAttrData(positions, 11, center);
+
+    addAttrData(uvs, 0, 2, [0, 0]);
+    addAttrData(uvs, 1, 2, [1, 0]);
+    addAttrData(uvs, 2, 2, [0.5, 0.5]);
+    addAttrData(uvs, 3, 2, [1, 0]);
+    addAttrData(uvs, 4, 2, [1, 1]);
+    addAttrData(uvs, 5, 2, [0.5, 0.5]);
+    addAttrData(uvs, 6, 2, [1, 1]);
+    addAttrData(uvs, 7, 2, [0, 1]);
+    addAttrData(uvs, 8, 2, [0.5, 0.5]);
+    addAttrData(uvs, 9, 2, [0, 1]);
+    addAttrData(uvs, 10, 2, [0, 0]);
+    addAttrData(uvs, 11, 2, [0.5, 0.5]);
+
+    return [
+        { name:"position", data:positions, stride: 3},
+        { name:"uv", data:uvs, stride: 2 }
+    ];
 }
+
+export function ovalGeomDataFromCorners(corners) {
+    const l0 = new Line().fromTwoPoints(corners[0], corners[2]);
+    const l1 = new Line().fromTwoPoints(corners[1], corners[3]);
+    let c = l0.getIntersectionPoint(l1);
+    if (!c) { c = corners[0].clone(); }
+    const center = new THREE.Vector3(c.x, c.y, 0);
+    const midPoints = [];
+    for (let i = 0; i < 4; i ++) {
+        midPoints.push(new THREE.Vector3().lerpVectors(corners[i], corners[(i + 1) % 4], 0.5));
+    }
+
+    const edgePoints = [];
+    const res = 24;
+    const cpt = (4/3) * Math.tan(Math.PI/8);
+    for (let i = 0; i < 4; i ++) {
+        const mi0 = i;
+        const mi1 = (i + 1) % 4;
+        const ci = (i + 1) % 4;
+        const cp0 = new THREE.Vector3().lerpVectors(midPoints[mi0], corners[ci], cpt);
+        const cp1 = new THREE.Vector3().lerpVectors(midPoints[mi1], corners[ci], cpt);
+        for (let j = 0; j < res; j ++) {
+            const t = j / res;
+            const p = qubicBezier(midPoints[mi0], cp0, cp1, midPoints[mi1], t);
+            edgePoints.push(p);
+        }
+    }
+
+    const positions = new Float32Array(edgePoints.length * 3 * 3);
+    const uvs = new Float32Array(edgePoints.length * 3 * 2);
+    for (let i = 0; i < edgePoints.length; i ++) {
+        const p0 = edgePoints[i];
+        const p1 = edgePoints[(i + 1) % edgePoints.length];
+        addPosAttrData(positions, i * 3, p0);
+        addPosAttrData(positions, i * 3 + 1, p1);
+        addPosAttrData(positions, i * 3 + 2, center);
+        const v0 = i / edgePoints.length;
+        const v1 = (i + 1) / edgePoints.length;
+
+        addAttrData(uvs, i * 3, 2, [1, v0]);
+        addAttrData(uvs, i * 3 + 1, 2, [1, v1]);
+        addAttrData(uvs, i * 3 + 2, 2, [0.0, (v0 + v1) * 0.5]);
+    }
+
+    return [
+        { name:"position", data:positions, stride: 3},
+        { name:"uv", data:uvs, stride: 2 }
+    ];
+}
+
+
+export function blobGeomDataFromVertices(vertices) {
+    const sum = new THREE.Vector3();
+    const tl = new THREE.Vector3(10000, 10000, 0), br = new THREE.Vector3(-10000, -10000, 0);
+
+    vertices.forEach((v)=>{
+        sum.add(v);
+        tl.x = Math.min(tl.x, v.x);
+        tl.y = Math.min(tl.y, v.y);
+        br.x = Math.max(br.x, v.x);
+        br.y = Math.max(br.y, v.y);
+    });
+    const center = sum.clone().divideScalar(Math.max(1, vertices.length));
+
+    let v = []; 
+    if (vertices.length > 2) {
+        const cp = createBezierCpLoop(vertices);
+        v = cpToBezier(cp, 24);
+    }
+
+    const positions = new Float32Array(v.length * 9);
+    const uvs = new Float32Array(v.length * 6);
+    for (let i = 0; i < v.length; i++) {
+        const i0 = i % v.length;
+        const i1 = (i + 1) % v.length;
+        const v0 = i / v.length;
+        const v1 = (i + 1) / v.length;
+        addPosAttrData(positions, i * 3 + 0, v[i0]);
+        addPosAttrData(positions, i * 3 + 1, v[i1]);
+        addPosAttrData(positions, i * 3 + 2, center);
+        addAttrData(uvs, i * 3, 2, [1, v0]);
+        addAttrData(uvs, i * 3 + 1, 2, [1, v1]);
+        addAttrData(uvs, i * 3 + 2, 2, [0.0, (v0 + v1) * 0.5]);
+    }
+    
+    return [
+        { name:"position", data:positions, stride: 3},
+        { name:"uv", data:uvs, stride: 2 }
+    ];
+}
+
+
+
+//////// TO DELETE
+/*
+export function stripFromSides(side) {
+    const n = Math.min(side[0].length, side[1].length);
+    const arr = [];
+    for (let i = 0; i < n; i++) {
+        arr.push(side[0][i]);
+        arr.push(side[1][i]);
+    }
+    return stripFromArray(arr);
+}
+
+export function stripFromArray(vertices) {
+    //const geometry = new THREE.BufferGeometry();
+    const data = stripGeomDataFromArray(vertices);
+    //geometry.setAttribute('position', new THREE.BufferAttribute(data.positions, 3));
+    //geometry.setAttribute('uv', new THREE.BufferAttribute(data.uvs, 2));
+    return dataToGeom(data);
+}
+
+*/

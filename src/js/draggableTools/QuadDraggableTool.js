@@ -1,7 +1,10 @@
 
 import * as THREE from 'three';
 import { DraggableTool } from './DraggableTool.js';
-import { v, line, disposeObject, quadFromCorners } from "../utils/DrawingUtil.js"
+import { v, line } from "../utils/DrawingUtil.js"
+
+import { quadGeomDataFromCorners, dataToGeom} from "../utils/GeomUtil.js"
+
 import { FloatDataTexture } from "../utils/FloatDataTexture.js"
 
 export class QuadDraggableTool extends DraggableTool {
@@ -13,8 +16,6 @@ export class QuadDraggableTool extends DraggableTool {
 
     constructor(context) {
         super(context);
-        this.sideBufferLength = 2048;
-        this.sideTexture = new FloatDataTexture(null, this.sideBufferLength, 2);
     }
 
     updateViewsCreateCustom() {
@@ -66,16 +67,15 @@ export class QuadDraggableTool extends DraggableTool {
             const mainMaterial = this.getNewMaterial(this.context.selectedMaterial);;
             this.mainObj = new THREE.Mesh(new THREE.BufferGeometry(), mainMaterial);
             this.mainObj.toolRef = this;
-        } else {
-            this.mainObj.geometry.dispose();
         }
-        this.sides = [
-            [this.vertices[0].clone(), this.vertices[1].clone],
-            [this.vertices[2].clone(), this.vertices[3].clone]
-        ]
 
-        const mainGeometry = quadFromCorners(this.vertices);
-        this.mainObj.geometry = mainGeometry;
+        this.mainObj.geometry.dispose();
+        const data = quadGeomDataFromCorners(this.vertices)
+        if (this.state == DraggableTool.states.CREATE) {
+            this.initialPosition = { name: "initialPosition", data: data[0].data.slice(), stride: 3};
+        }
+        data.push(this.initialPosition);
+        this.mainObj.geometry = dataToGeom(data);
 
         this.updateMainUniforms();
     }

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Line } from '../utils/GeomUtil.js';
+import { Line } from './MathUtil.js';
 
 export function distance2D(a, b) {
     const dx = a.x - b.x;
@@ -24,154 +24,6 @@ function addPos(arr, idx, p) {
 function addUv(arr, idx, uv) {
     arr[idx * 2] = uv[0];
     arr[idx * 2 + 1] = uv[1];
-}
-
-export function quadFromCorners(corners) {
-    const l0 = new Line().fromTwoPoints(corners[0], corners[2]);
-    const l1 = new Line().fromTwoPoints(corners[1], corners[3]);
-    let c = l0.getIntersectionPoint(l1);
-    if (!c) { c = corners[0].clone(); }
-
-    const center = v(c.x, c.y, 0);
-    const positions = new Float32Array(12 * 3);
-    const uvs = new Float32Array(12 * 2);
-    addPos(positions, 0, corners[0]);
-    addPos(positions, 1, corners[1]);
-    addPos(positions, 2, center);
-    addPos(positions, 3, corners[1]);
-    addPos(positions, 4, corners[2]);
-    addPos(positions, 5, center);
-    addPos(positions, 6, corners[2]);
-    addPos(positions, 7, corners[3]);
-    addPos(positions, 8, center);
-    addPos(positions, 9, corners[3]);
-    addPos(positions, 10, corners[0]);
-    addPos(positions, 11, center);
-
-    addUv(uvs, 0, [0, 0]);
-    addUv(uvs, 1, [1, 0]);
-    addUv(uvs, 2, [0.5, 0.5]);
-    addUv(uvs, 3, [1, 0]);
-    addUv(uvs, 4, [1, 1]);
-    addUv(uvs, 5, [0.5, 0.5]);
-    addUv(uvs, 6, [1, 1]);
-    addUv(uvs, 7, [0, 1]);
-    addUv(uvs, 8, [0.5, 0.5]);
-    addUv(uvs, 9, [0, 1]);
-    addUv(uvs, 10, [0, 0]);
-    addUv(uvs, 11, [0.5, 0.5]);
-
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
-    return geometry;
-}
-
-
-export function ovalFromCorners(corners) {
-    const l0 = new Line().fromTwoPoints(corners[0], corners[2]);
-    const l1 = new Line().fromTwoPoints(corners[1], corners[3]);
-    let c = l0.getIntersectionPoint(l1);
-    if (!c) { c = corners[0].clone(); }
-    const center = v(c.x, c.y, 0);
-    const midPoints = [];
-    for (let i = 0; i < 4; i ++) {
-        midPoints.push(new THREE.Vector3().lerpVectors(corners[i], corners[(i + 1) % 4], 0.5));
-    }
-
-    const edgePoints = [];
-    const res = 24;
-    const cpt = (4/3) * Math.tan(Math.PI/8);
-    for (let i = 0; i < 4; i ++) {
-        const mi0 = i;
-        const mi1 = (i + 1) % 4;
-        const ci = (i + 1) % 4;
-        const cp0 = new THREE.Vector3().lerpVectors(midPoints[mi0], corners[ci], cpt);
-        const cp1 = new THREE.Vector3().lerpVectors(midPoints[mi1], corners[ci], cpt);
-        for (let j = 0; j < res; j ++) {
-            const t = j / res;
-            const p = qubicBezier(midPoints[mi0], cp0, cp1, midPoints[mi1], t);
-            edgePoints.push(p);
-        }
-    }
-
-    const positions = new Float32Array(edgePoints.length * 3 * 3);
-    const uvs = new Float32Array(edgePoints.length * 3 * 2);
-    for (let i = 0; i < edgePoints.length; i ++) {
-        const p0 = edgePoints[i];
-        const p1 = edgePoints[(i + 1) % edgePoints.length];
-        addPos(positions, i * 3, p0);
-        addPos(positions, i * 3 + 1, p1);
-        addPos(positions, i * 3 + 2, center);
-        const u0 = i / edgePoints.length;
-        const u1 = (i + 1) / edgePoints.length;
-
-        addUv(uvs, i * 3, [u0, 1]);
-        addUv(uvs, i * 3 + 1, [u1, 1]);
-        addUv(uvs, i * 3 + 2, [(u0 + u1) * 0.5, 0.0]);
-    }
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
-    return geometry;
-}
-
-export function stripFromSides(side) {
-    const n = Math.min(side[0].length, side[1].length);
-    const arr = [];
-    for (let i = 0; i < n; i++) {
-        arr.push(side[0][i]);
-        arr.push(side[1][i]);
-    }
-    return stripFromArray(arr);
-}
-
-export function stripFromArray(vertices) {
-    const geometry = new THREE.BufferGeometry();
-
-    const positions = new Float32Array(vertices.length * 18);
-    const uvs = new Float32Array(vertices.length * 12);
-
-    function setPos(idx, p) {
-        positions[idx * 3] = p.z;
-        positions[idx * 3 + 1] = p.y;
-        positions[idx * 3 + 2] = p.x;
-    }
-
-    function setUv(idx, u, v) {
-        uvs[idx * 2] = v;
-        uvs[idx * 2 + 1] = u;
-    }
-
-    const n = vertices.length / 2;
-    let pn = 0;
-    for (let i = 0; i < n - 1; i++) {
-        const p0 = vertices[i * 2]
-        const p1 = vertices[i * 2 + 1]
-        const p2 = vertices[i * 2 + 2]
-        const p3 = vertices[i * 2 + 3]
-        const u0 = i / (n - 1);
-        const u1 = (i + 1) / (n - 1);
-        setPos(i * 6 + 0, p2);
-        setPos(i * 6 + 1, p1);
-        setPos(i * 6 + 2, p0);
-        setPos(i * 6 + 3, p2);
-        setPos(i * 6 + 4, p3);
-        setPos(i * 6 + 5, p1);
-
-        setUv(i * 6 + 0, 0, u1);
-        setUv(i * 6 + 1, 1, u0);
-        setUv(i * 6 + 2, 0, u0);
-        setUv(i * 6 + 3, 0, u1);
-        setUv(i * 6 + 4, 1, u1);
-        setUv(i * 6 + 5, 1, u0);
-        pn += 6;
-    }
-    positions.reverse();
-    uvs.reverse();
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
-    return geometry;
 }
 
 export function stripSidesFromArray(arr, width) {
@@ -269,122 +121,41 @@ export function qubicBezier(p0, p1, p2, p3, t) {
     }
 }
 
-/*
-export function qubicBezier3D(p0, p1, p2, p3, t) {
-    const x = qubicBezier(p0.x, p1.x, p2.x, p3.x, t);
-    const y = qubicBezier(p0.y, p1.y, p2.y, p3.y, t);
-    const z = qubicBezier(p0.z, p1.z, p2.z, p3.z, t);
-    return { x, y, z };
-}
-
-export function qubicBezier2D(p0, p1, p2, p3, t) {
-    const x = qubicBezier(p0.x, p1.x, p2.x, p3.x, t);
-    const y = qubicBezier(p0.y, p1.y, p2.y, p3.y, t);
-    return { x, y };
-}
-*/
-
 export function qubicBezier1D(p0, p1, p2, p3, t) {
     return Math.pow(1 - t, 3) * p0 + 3 * Math.pow(1 - t, 2) * t * p1 + 3 * (1 - t) * Math.pow(t, 2) * p2 + Math.pow(t, 3) * p3;
 }
 
-export function createBezierCP(p) {
-    if (p.lengths <= 1) {
-      return [];
-    }
-    if (p.lengths == 2) {
-      return [cp(p[0]),cp(p[0]),cp(p[1]),cp(p[1])];
-    }
-    
-    const pts = [];
-    for (let i = 0; i < p.length; i ++) {
-      if (i == p.length - 1) {
-        pts.push(ip(p[i-1], p[i], 0.75)); 
-        pts.push(ip(p[i-1], p[i], 0.75)); 
-        pts.push(cp(p[i])); continue;
-      }
-      if (i == 0) {
-        pts.push(cp(p[0]));
-        pts.push(ip(p[0],p[1], 0.25));
-        pts.push(ip(p[0],p[1], 0.25));
-        pts.push(ip(p[0],p[1], 0.5));
-      }  else {
-        const p0 = cp(p[i]);
-       const p1 = ip(p[i], p[i + 1], 0.5);
-        pts.push(p0);
-        pts.push(p0);
-        pts.push(p1);
-      } 
-    }
-    return pts;
-  }
 
-  export function createBezierCP2(p) {
-    if (p.lengths <= 1) {
-      return [];
-    }
-    const pts = [];
-    const tp = [];
-    for (let i = 0; i < p.length - 1; i ++) {
-      tp.push(ip(p[i], p[i + 1], 0));
-      tp.push(ip(p[i], p[i + 1], 0.25));
-      tp.push(ip(p[i], p[i + 1], 0.5));
-      tp.push(ip(p[i], p[i + 1], 0.75));
-    }
-    tp.push(cp(p[p.length - 1]));
-    
-    for (let i = 0; i < p.length - 1; i ++) {
-      if (i == 0) {
-        pts.push(tp[0]);
-        pts.push(tp[1]);
-        pts.push(tp[1]);
-        pts.push(tp[2]);
-      } else {
-        const b = (i - 1) * 4;
-        pts.push(tp[b + 3]);
-        pts.push(tp[b + 5]);
-        pts.push(tp[b + 6]);
-      }
-      
-      if (i == p.length - 2) {
-        pts.push(tp[tp.length - 2]);
-        pts.push(tp[tp.length - 2]);
-        pts.push(tp[tp.length - 1]);
-      }
-    }
-    
-    return pts;
-  }
 
-  export function cpToBezier(cp, res = 64) {
+export function cpToBezier(cp, res = 64) {
     const pts = [];
     for (let i = 0; i < cp.length / 3 - 1; i ++) {
-      for (let j = 0; j < res; j ++) {
+        for (let j = 0; j < res; j ++) {
         const t = j / res;
         const pt = qubicBezier(
-          cp[i * 3],
-          cp[i * 3 + 1],
-          cp[i * 3 + 2],
-          cp[i * 3 + 3],
-          t
+            cp[i * 3],
+            cp[i * 3 + 1],
+            cp[i * 3 + 2],
+            cp[i * 3 + 3],
+            t
         )
         pts.push(pt);
-      }
+        }
     }
     pts.push(cp[cp.length - 1]);
     return pts;
-  }
+}
 
-  function cp(p) {
+function vcopy(p) {
     return p.clone();
-  }
+}
 
-  function ip(p0, p1, t) {
+function ip(p0, p1, t) {
     const v = p0.clone();
     return v.lerpVectors(p0, p1, t);
-  }
+}
 
-  export function createDataTextureFromArray(arr) {
+export function createDataTextureFromArray(arr) {
     const width = arr[0].length;
     const height = arr.length;
 
@@ -416,4 +187,104 @@ export function arrayToF32(arr) {
         }
     }
     return data;
+}
+
+export function createBezierCP(p) {
+    if (p.lengths <= 1) {
+    return [];
+    }
+    if (p.lengths == 2) {
+    return [vcopy(p[0]),vcopy(p[0]),vcopy(p[1]),vcopy(p[1])];
+    }
+    
+    const pts = [];
+    for (let i = 0; i < p.length; i ++) {
+        if (i == p.length - 1) {
+            pts.push(ip(p[i-1], p[i], 0.75)); 
+            pts.push(ip(p[i-1], p[i], 0.75)); 
+            pts.push(vcopy(p[i]));
+        } else if (i == 0) {
+            pts.push(vcopy(p[0]));
+            pts.push(ip(p[0],p[1], 0.25));
+            pts.push(ip(p[0],p[1], 0.25));
+            pts.push(ip(p[0],p[1], 0.5));
+        }  else {
+            const p0 = vcopy(p[i]);
+            const p1 = ip(p[i], p[i + 1], 0.5);
+            pts.push(p0);
+            pts.push(p0);
+            pts.push(p1);
+        } 
+    }
+    return pts;
+}
+
+export function createBezierCP2(p) {
+    if (p.lengths <= 1) {
+        return [];
+    }
+    const pts = [];
+    const tp = [];
+    const cpt = (4/3) * Math.tan(Math.PI/8);
+    for (let i = 0; i < p.length - 1; i ++) {
+        tp.push(ip(p[i], p[i + 1], 0));
+        tp.push(ip(p[i], p[i + 1], 0.25));
+        tp.push(ip(p[i], p[i + 1], 0.5));
+        tp.push(ip(p[i], p[i + 1], 0.75));
+    }
+    tp.push(vcopy(p[p.length - 1]));
+
+    for (let i = 0; i < p.length - 1; i ++) {
+        if (i == 0) {
+        pts.push(tp[0]);
+        pts.push(tp[1]);
+        pts.push(tp[1]);
+        pts.push(tp[2]);
+        } else {
+        const b = (i - 1) * 4;
+        pts.push(tp[b + 3]);
+        pts.push(tp[b + 5]);
+        pts.push(tp[b + 6]);
+        }
+        
+        if (i == p.length - 2) {
+        pts.push(tp[tp.length - 2]);
+        pts.push(tp[tp.length - 2]);
+        pts.push(tp[tp.length - 1]);
+        }
+    }
+
+    return pts;
+}
+
+export function createBezierCpLoop(p) {
+    if (p.lengths <= 1) {
+        return [];
+    }
+    const pts = [];
+    const tp = [];
+    for (let i = 0; i < p.length; i ++) {
+        const i0 = i;
+        const i1 = (i + 1) % p.length;
+        tp.push(ip(p[i0], p[i1], 0));
+        tp.push(ip(p[i0], p[i1], 0.25));
+        tp.push(ip(p[i0], p[i1], 0.5));
+        tp.push(ip(p[i0], p[i1], 0.75));
+    }
+
+    for (let i = 0; i < p.length; i ++) {
+        const n = tp.length;
+        const i0 = (i * 4 + 2) % n;
+        const i1 = (i * 4 + 3) % n;
+        const i2 = (i * 4 + 5) % n;
+        pts.push(tp[i0]);
+        pts.push(tp[i1]);
+        pts.push(tp[i2]);
+        if (i == p.length - 1) {
+            const i3 = (i * 4 + 6) % tp.length;
+            pts.push(tp[i3]);
+        }
+    }
+
+    return pts;
 }
