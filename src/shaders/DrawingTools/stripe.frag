@@ -5,8 +5,8 @@ uniform vec2 res;
 
 uniform float dir;
 uniform sampler2D referenceTexture;
-uniform vec3 c0, c1, c2, c3;
 uniform sampler2D canvasTexture;
+uniform vec3 c0, c1, c2, c3;
 
 void main( void ) {
     float t = (dir == 0.0) ? fract(vUv.x * 8.0) : fract(vUv.y * 8.0);

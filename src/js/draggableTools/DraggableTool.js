@@ -1,5 +1,6 @@
 
 import * as THREE from 'three';
+import { disposeObject } from '../utils/DrawingUtil.js'
 import { loadText } from '../utils/FileUtil.js'
 
 export class DraggableTool {
@@ -16,23 +17,35 @@ export class DraggableTool {
     }
     
     static materials = {
-        Experiment: {
-            src: '../shaders/DrawingTools/experiment.frag',
+        SAMPLE_HEX: {
+            src: '../shaders/DrawingTools/sample_hex.frag',
             key: "1"
+        },
+        FLAT: {
+            src: '../shaders/DrawingTools/flat.frag',
+            key: "2"
         },
         STRIPE_X: {
             src: '../shaders/DrawingTools/stripe.frag',
-            key: "2",
+            key: "3",
             uniforms: {dir : 0}
         },
         STRIPE_Y: {
             src: '../shaders/DrawingTools/stripe.frag',
-            key: "3",
+            key: "4",
             uniforms: {dir : 1}
         },
         GRADIENT: {
             src: '../shaders/DrawingTools/gradient.frag',
-            key: "4"
+            key: "5"
+        },
+        SAMPLE: {
+            src: '../shaders/DrawingTools/sample.frag',
+            key: "6"
+        },
+        SAMPLE_CANVAS: {
+            src: '../shaders/DrawingTools/sample_canvas.frag',
+            key: "7"
         }
     }
 
@@ -86,7 +99,7 @@ export class DraggableTool {
             this.updateViewsMove();
             break;
             case DraggableTool.states.IDLE: 
-            this.updateViewsAnimate();
+            // do nothing
         }
     }
 
@@ -135,19 +148,9 @@ export class DraggableTool {
         uniforms.res = { value: new THREE.Vector2(this.data.context.width, this.data.context.height)};
     }
 
-    startAnimation() {
-        this.saveOrigin();
-    }
-
-    updateViewsAnimate() {
-        this.updateViewsAnimateCustom();
-        this.updateObjects();
-    }
-    
     updateViewsCreateCustom() {}
     updateViewsMoveCustom() {}
     updateViewsEditCustom() {}
-    updateViewsAnimateCustom() {}
 
     updateObjects() {
         this.updateObjectsCommon();

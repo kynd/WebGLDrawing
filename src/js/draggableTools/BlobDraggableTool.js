@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 
 import { DraggableTool } from './DraggableTool.js';
-import { v, line, disposeObject, blobFromVertices, createBezierCP, createBezierCP2, cpToBezier, stripSidesFromArray, stripFromSides} from "../utils/DrawingUtil.js"
+import { v, line, disposeObject, createBezierCP, cpToBezier, stripSidesFromArray} from "../utils/DrawingUtil.js"
 
 import { blobGeomDataFromVertices, dataToGeom} from "../utils/GeomUtil.js"
 
@@ -18,8 +18,6 @@ export class BlobDraggableTool extends DraggableTool {
     constructor(context) {
         super(context);
         this.width = Math.random() * 200 + 60;
-        this.sideBufferLength = 2048;
-        this.sideTexture = new FloatDataTexture(null, this.sideBufferLength, 2);
     }
 
     updateViewsCreateCustom() {
@@ -86,29 +84,8 @@ export class BlobDraggableTool extends DraggableTool {
                 this.initialPosition = { name: "initialPosition", data: data[0].data.slice(), stride: 3};
             }
             data.push(this.initialPosition);
-            this.mainObj.geometry = dataToGeom(data);//stripFromSides(this.sides)
+            this.mainObj.geometry = dataToGeom(data);
         }
-
-        /*
-        const nSideLength = Math.min(this.sides[0].length, this.sides[1].length);
-
-        if (this.state == DraggableTool.states.CREATE) {
-            for (let i = 0; i < nSideLength; i ++) {
-                this.sideTexture.setPixel(i, 0, [
-                    this.sides[0][i].x, this.sides[0][i].y, 0, 1
-                ]);
-                this.sideTexture.setPixel(i, 1, [
-                    this.sides[1][i].x, this.sides[1][i].y, 0, 1
-                ]);
-            }
-            this.sideTexture.update();
-        }
-        
-        if (nSideLength > this.sideBufferLength) {
-            console.log(`WARNING: The strip has too many vertices (${nSideLength}). Keep it under ${this.sideBufferLength}` );
-        }
-        */
-
         this.updateMainUniforms();
     }
     
@@ -136,26 +113,6 @@ export class BlobDraggableTool extends DraggableTool {
         } else {
             return DraggableTool.results.END;
         }
-    }
-
-    updateViewsAnimateCustom() {
-        if (!this.origin) {
-            this.saveOrigin();
-        }
-        this.count ++;
-        const div = 60;
-        const d = Math.floor(this.count / 60)
-        const t = this.count / 60 - d;
-        this.vertices.forEach((vertice, i)=> {
-            const i0 = (d + i) % this.vertices.length;
-            const i1 = (d + i + 1) % this.vertices.length;
-            const v = this.verticeOrigins[i0].clone().lerp(this.verticeOrigins[i1], t);
-            vertice.copy(v);
-        });
-    }
-
-    disposeCustom() {
-        if (this.sideTexture ) { this.sideTexture.dispose(); }
     }
 }
 

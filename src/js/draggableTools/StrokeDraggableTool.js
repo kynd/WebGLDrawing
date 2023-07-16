@@ -115,25 +115,5 @@ export class StrokeDraggableTool extends DraggableTool {
             return DraggableTool.results.END;
         }
     }
-
-    updateViewsAnimateCustom() {
-        if (!this.origin) {
-            this.saveOrigin();
-        }
-        this.count ++;
-        const div = 60;
-        const d = Math.floor(this.count / 60)
-        const t = this.count / 60 - d;
-        this.vertices.forEach((vertice, i)=> {
-            const i0 = (d + i) % this.vertices.length;
-            const i1 = (d + i + 1) % this.vertices.length;
-            const v = this.verticeOrigins[i0].clone().lerp(this.verticeOrigins[i1], t);
-            vertice.copy(v);
-        });
-    }
-
-    disposeCustom() {
-        if (this.sideTexture ) { this.sideTexture.dispose(); }
-    }
 }
 

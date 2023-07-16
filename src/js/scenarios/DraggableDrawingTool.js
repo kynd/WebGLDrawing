@@ -21,24 +21,15 @@ export class DraggableDrawingTool extends ScenarioBase {
         this.setToolList();
         this.setup();
         this.asyncStart();
-        this.isAnimating = false;
         this.isPreviewing = false;
         this.isToolDisplayVisible = false;
-        $("body").on("keydown", (evt)=> {
-            if (evt.key === "Enter") {
-                this.toggleAnimation();
-            }
-            if (evt.key === "\\") {
-                this.togglePreview();
-            }
-        });
     }
 
     setToolList() {
         this.toolList = [
-            {label: "Blob", key: "b", obj: BlobDraggableTool},
             {label: "Quad", key: "q", obj: QuadDraggableTool},
-            {label: "Spiral", key: "c", obj: SpiralDraggableTool},
+            {label: "Blob", key: "b", obj: BlobDraggableTool},
+            {label: "Spiral", key: "r", obj: SpiralDraggableTool},
             {label: "Wave", key: "w", obj: WaveDraggableTool},
             {label: "Stroke", key: "s", obj: StrokeDraggableTool},
             {label: "Oval", key: "o", obj: OvalDraggableTool}
@@ -48,7 +39,7 @@ export class DraggableDrawingTool extends ScenarioBase {
     setup() {
         this.scene = new THREE.Scene();
         this.mainScene = new THREE.Scene();
-        this.printScene = new THREE.Scene();
+        //this.printScene = new THREE.Scene();
         this.pingPong = new PingPong(this.context, '../shaders/simple_image.frag');
         this.imageScene = new SimpleImageScene(this.context, '../img/hallway.jpg');
 
@@ -87,14 +78,16 @@ export class DraggableDrawingTool extends ScenarioBase {
         this.colorSelector.generateLibraryFromImage(24, '../img/palette01.png');
 
         $(document).on("keypress", (evt)=>{
-            console.log(evt.key)
+            if (evt.key === "\\") { this.togglePreview(); }
             if (evt.key == " ") { 
                 this.isToolDisplayVisible = !this.isToolDisplayVisible; this.updateToolDisplay(); }
             if (evt.key == ",") { this.selectedToolDef.params.sizeA = Math.max(1, this.selectedToolDef.params.sizeA - 1); this.updateToolDisplay()}
             if (evt.key == ".") { this.selectedToolDef.params.sizeA = Math.min(10, this.selectedToolDef.params.sizeA + 1); this.updateToolDisplay()}
-            if (evt.key == ";") { this.params.sizeB = Math.max(1, this.selectedToolDef.params.sizeB - 1); this.updateToolDisplay()}
+            if (evt.key == ";") { this.selectedToolDef.params.sizeB = Math.max(1, this.selectedToolDef.params.sizeB - 1); this.updateToolDisplay()}
+            if (evt.key == "'") { this.selectedToolDef.params.sizeB = Math.min(10, this.selectedToolDef.params.sizeB + 1); this.updateToolDisplay()}
             if (evt.key == "z") { this.colorSelector.randomize(); }
-        
+            if (evt.key == "p") { this.print(); }
+            if (evt.key == "c") { this.clear(); }
         });
     }
 
@@ -110,9 +103,7 @@ export class DraggableDrawingTool extends ScenarioBase {
             this.toolDisplay = $("<div>").prop({class:"tool-display"});
             $("body").append(this.toolDisplay);
         }
-        console.log(this.isToolDisplayVisible);
         this.toolDisplay.css({display: this.isToolDisplayVisible ? "flex" : "none"});
-        console.log(this.selectedToolDef)
         this.toolDisplay.html(`${this.selectedToolDef.label} | size A (,.): ${this.selectedToolDef.params.sizeA} | size B (;'): ${this.selectedToolDef.params.sizeB}`)
     }
 
@@ -123,18 +114,32 @@ export class DraggableDrawingTool extends ScenarioBase {
             this.toolList.forEach((tool)=>{
                 ready &= tool.obj.ready;
             });
+            if (ready) {this.clear();}
             return ready;
         });
     }
 
-    update() {
-        if (this.isAnimating) {
-            this.updateAnimation();
-        }
+    clear() {
+        this.pingPong.clear();
+    }
 
+    print() {
+        this.pingPong.renderOnCurrentRenderTarget(this.mainScene);
+        this.pingPong.update();
+        this.currentTool = null;
+        this.toolInstances.forEach(tool=>{
+            tool.dispose();
+        })
+        this.toolInstances = [];
+        this.isDragging = false;
+    }
+
+    update() {
         this.shaderTexture.update();
-        this.context.renderer.autoClear = false;
+        this.context.renderer.autoClear = true;
         this.context.renderer.render( this.pingPong.scene, this.context.camera);
+
+        this.context.renderer.autoClear = false;
         //this.context.renderer.render( this.imageScene.scene, this.context.camera);
         
         this.context.renderer.render( this.mainScene, this.context.camera);
@@ -235,28 +240,7 @@ export class DraggableDrawingTool extends ScenarioBase {
         this.currentTool = null;
     }
 
-    toggleAnimation() {
-        this.isAnimating = !this.isAnimating;
-        if (this.isAnimating && this.toolInstances) {
-            this.toolInstances.forEach((tool)=>{
-                if (tool.state == DraggableTool.states.IDLE) {
-                    tool.startAnimation()
-                }
-            });
-        }
-    }
-
     togglePreview() {
         this.isPreviewing = !this.isPreviewing;
-    }
-
-    updateAnimation() {
-        if (this.toolInstances) {
-            this.toolInstances.forEach((tool)=>{
-                if (tool.state == DraggableTool.states.IDLE) {
-                    this.updateTool(tool);
-                }
-            })
-        };
     }
 }

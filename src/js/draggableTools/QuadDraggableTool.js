@@ -87,17 +87,4 @@ export class QuadDraggableTool extends DraggableTool {
     pointerUp() {
         return DraggableTool.results.END;
     }
-
-    updateViewsAnimateCustom() {
-        const center = v(0, 0, 0);
-        this.vertices.forEach((vertice)=> {
-            center.add(vertice);
-        });
-        center.divideScalar(this.vertices.length);
-        this.vertices.forEach((vertice)=> {
-            const diff = vertice.clone().sub(center);
-            diff.applyAxisAngle(v(0,0,1), Math.PI / 60);
-            vertice.copy(diff.add(center));
-        });
-    }
 }

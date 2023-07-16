@@ -6,7 +6,25 @@ export class PingPong extends SceneBase {
     constructor(context, fragPath) {
         super(context);
         this.fragPath = fragPath;
+        this.copyRenderTargetNeedsUpdate = true;
         this.setup();
+    }
+
+    clear(color) {
+        console.log("Clear")
+        if (!color) {
+            color = new THREE.Color(0xFFFFFFFF);
+        }
+        const originalClearColor = new THREE.Color();
+        this.context.renderer.getClearColor(originalClearColor);
+        this.context.renderer.setClearColor(color);
+        this.renderTargets.forEach(target=>{
+            this.context.renderer.setRenderTarget(target);
+            this.context.renderer.clear(true,  true, true);
+        });
+        this.context.renderer.setRenderTarget(null)
+        this.context.renderer.setClearColor(originalClearColor);
+        this.copyRenderTargetNeedsUpdate = true;
     }
 
     getCurrentRenderTarget() {
@@ -44,6 +62,8 @@ export class PingPong extends SceneBase {
         // Main Scene
         this.scene = new THREE.Scene();
         const planeMaterial = new THREE.ShaderMaterial({
+            transparent: true,
+            side: THREE.DoubleSide,
             vertexShader: vertexShaderSource,
             fragmentShader: fragmentShaderSource,
             uniforms: {
@@ -59,6 +79,8 @@ export class PingPong extends SceneBase {
         // Copy Scene
         this.copyScene = new THREE.Scene();
         const copyPlaneMaterial = new THREE.ShaderMaterial({
+            transparent: true,
+            side: THREE.DoubleSide,
             vertexShader: vertexShaderSource,
             fragmentShader: copyFragmentShaderSource,
             uniforms: {
@@ -69,6 +91,8 @@ export class PingPong extends SceneBase {
         const copyPlaneGeometry = new THREE.PlaneGeometry(this.context.width, this.context.height, 4, 4);
         this.copyPlaneObject = new THREE.Mesh(copyPlaneGeometry, copyPlaneMaterial);
         this.copyScene.add( this.copyPlaneObject );
+
+        this.clear();
     }
 
     renderOnCurrentRenderTarget(scene) {
