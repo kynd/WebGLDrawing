@@ -6,8 +6,6 @@ import { v, line} from "../utils/DrawingUtil.js"
 import { ovalGeomDataFromCorners, dataToGeom} from "../utils/GeomUtil.js"
 
 
-import { FloatDataTexture } from "../utils/FloatDataTexture.js"
-
 export class OvalDraggableTool extends DraggableTool {
     static ready = false;
     static async init() {

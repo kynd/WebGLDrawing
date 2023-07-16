@@ -6,8 +6,6 @@ import { v, line, disposeObject, createBezierCP, cpToBezier, stripSidesFromArray
 
 import { blobGeomDataFromVertices, dataToGeom} from "../utils/GeomUtil.js"
 
-import { FloatDataTexture} from '../utils/FloatDataTexture.js';
-
 export class BlobDraggableTool extends DraggableTool {
     static ready = false;
     static async init() {

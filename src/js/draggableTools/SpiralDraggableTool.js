@@ -6,8 +6,6 @@ import { v, line, disposeObject, createBezierCP2, cpToBezier, stripSidesFromArra
 
 import { stripGeomDataFromSides, dataToGeom} from "../utils/GeomUtil.js"
 
-import { FloatDataTexture} from '../utils/FloatDataTexture.js';
-
 
 export class SpiralDraggableTool extends DraggableTool {
     static ready = false;
@@ -19,8 +17,6 @@ export class SpiralDraggableTool extends DraggableTool {
     constructor(context) {
         super(context);
         this.width = 30;
-        this.sideBufferLength = 2048;
-        this.sideTexture = new FloatDataTexture(null, this.sideBufferLength, 2);
     }
 
     updateViewsCreateCustom() {

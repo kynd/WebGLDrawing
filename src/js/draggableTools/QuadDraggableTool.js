@@ -5,8 +5,6 @@ import { v, line } from "../utils/DrawingUtil.js"
 
 import { quadGeomDataFromCorners, dataToGeom} from "../utils/GeomUtil.js"
 
-import { FloatDataTexture } from "../utils/FloatDataTexture.js"
-
 export class QuadDraggableTool extends DraggableTool {
     static ready = false;
     static async init() {

@@ -5,7 +5,6 @@ import { DraggableTool } from './DraggableTool.js';
 import { v, line, disposeObject, createBezierCP, createBezierCP2, cpToBezier, stripSidesFromArray } from "../utils/DrawingUtil.js"
 
 import { stripGeomDataFromSides, dataToGeom} from "../utils/GeomUtil.js"
-import { FloatDataTexture} from '../utils/FloatDataTexture.js';
 
 
 export class StrokeDraggableTool extends DraggableTool {
