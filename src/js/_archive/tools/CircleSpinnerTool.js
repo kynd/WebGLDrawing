@@ -1,9 +1,10 @@
 
 import * as THREE from 'three';
-import { v, line, disposeObject, distance2D} from "../utils/DrawingUtil.js"
-import { Tween } from '../utils/Tween.js';
-import { loadText } from '../utils/FileUtil.js'
-import { CyclePalette, palette01 } from '../utils/ColorUtil.js';
+import { v, line, distance2D} from "../../utils/DrawingUtil.js"
+import { disposeObject } from "../../utils/GeomUtil.js"
+import { Tween } from '../../utils/Tween.js';
+import { loadText } from '../../utils/FileUtil.js'
+import { CyclePalette, palette01 } from '../../utils/ColorUtil.js';
 
 export class CircleSpinnerTool {
 

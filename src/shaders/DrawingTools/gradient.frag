@@ -14,12 +14,3 @@ void main( void ) {
     vec3 color = mix(ca, cb, abs(vUv.t - 0.5) * 2.0);
     gl_FragColor = vec4(color, 1.0);
 }
-
-/*
-void main( void ) {
-    vec3 ca = mix(c0, c1, vUv.t);
-    vec3 cb = mix(c2, c3, vUv.t);
-    vec3 color = mix(ca, cb, abs(vUv.t - 0.5) * 2.0);
-    gl_FragColor = vec4(color, 1.0);
-}
-*/

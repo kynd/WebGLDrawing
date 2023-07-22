@@ -1,6 +1,6 @@
 
 import * as THREE from 'three';
-import { disposeObject } from '../utils/DrawingUtil.js'
+import { disposeObject } from "../utils/GeomUtil.js"
 import { loadText } from '../utils/FileUtil.js'
 
 export class DraggableTool {

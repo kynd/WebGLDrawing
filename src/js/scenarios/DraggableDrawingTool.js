@@ -5,11 +5,14 @@ import { PingPong } from '../scenes/PingPong.js';
 import { Menu } from "../utils/Menu.js";
 import { ColorSelector } from "../utils/ColorSelector.js";
 import { QuadDraggableTool } from "../draggableTools/QuadDraggableTool.js"
+
+/*
 import { OvalDraggableTool } from "../draggableTools/OvalDraggableTool.js"
 import { StrokeDraggableTool } from "../draggableTools/StrokeDraggableTool.js"
 import { SpiralDraggableTool } from "../draggableTools/SpiralDraggableTool.js"
 import { WaveDraggableTool } from "../draggableTools/WaveDraggableTool.js"
 import { BlobDraggableTool } from "../draggableTools/BlobDraggableTool.js"
+*/
 import { SimpleImageScene } from '../scenes/SimpleImageScene.js';
 import { ShaderTextureMaker } from "../utils/ShaderTextureMaker.js"
 import { DraggableTool } from '../draggableTools/DraggableTool.js';
@@ -23,16 +26,19 @@ export class DraggableDrawingTool extends ScenarioBase {
         this.asyncStart();
         this.isPreviewing = false;
         this.isToolDisplayVisible = false;
+
     }
 
     setToolList() {
         this.toolList = [
-            {label: "Quad", key: "q", obj: QuadDraggableTool},
+            {label: "Quad", key: "q", obj: QuadDraggableTool}
+            
+            /*,
             {label: "Blob", key: "b", obj: BlobDraggableTool},
             {label: "Spiral", key: "r", obj: SpiralDraggableTool},
             {label: "Wave", key: "w", obj: WaveDraggableTool},
             {label: "Stroke", key: "s", obj: StrokeDraggableTool},
-            {label: "Oval", key: "o", obj: OvalDraggableTool}
+            {label: "Oval", key: "o", obj: OvalDraggableTool}*/
         ]
     }
 

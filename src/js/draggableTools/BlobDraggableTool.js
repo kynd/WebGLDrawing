@@ -2,8 +2,9 @@
 import * as THREE from 'three';
 
 import { DraggableTool } from './DraggableTool.js';
-import { v, line, disposeObject, createBezierCP, cpToBezier, stripSidesFromArray} from "../utils/DrawingUtil.js"
+import { v, line, createBezierCP, cpToBezier, stripSidesFromArray} from "../utils/DrawingUtil.js"
 
+import { disposeObject } from "../../utils/GeomUtil.js"
 import { blobGeomDataFromVertices, dataToGeom} from "../utils/GeomUtil.js"
 
 export class BlobDraggableTool extends DraggableTool {

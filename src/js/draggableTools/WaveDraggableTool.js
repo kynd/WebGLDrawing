@@ -2,7 +2,8 @@
 import * as THREE from 'three';
 
 import { DraggableTool } from './DraggableTool.js';
-import { v, line, disposeObject, createBezierCP, createBezierCP2, cpToBezier, stripSidesFromArray} from "../utils/DrawingUtil.js"
+import { v, line,  createBezierCP2, cpToBezier, stripSidesFromArray} from "../utils/DrawingUtil.js"
+import { disposeObject } from "../../utils/GeomUtil.js"
 import { stripGeomDataFromSides, dataToGeom} from "../utils/GeomUtil.js"
 import { FloatDataTexture} from '../utils/FloatDataTexture.js';
 import { Vector3 } from 'three';

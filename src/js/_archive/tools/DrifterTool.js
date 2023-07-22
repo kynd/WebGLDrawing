@@ -1,19 +1,20 @@
 
 import * as THREE from 'three';
-import {v, line, disposeObject, distance2D, stripSidesFromArray, stripFromSides} from "../utils/DrawingUtil.js"
+import {v, line, distance2D, stripSidesFromArray, stripFromSides} from "../utils/DrawingUtil.js"
+import { disposeObject } from "../../utils/GeomUtil.js"
 import { Tween } from '../utils/Tween.js';
 import { loadText } from '../utils/FileUtil.js'
 import { CyclePalette, palette01 } from '../utils/ColorUtil.js';
 
-export class DragTapeTool {
+export class DrifterTool {
 
     static ready = false;
 
     static async init() {
-        DragTapeTool.vertexShaderSource = await loadText('../shaders/common.vert');
-        DragTapeTool.fragmentShaderSource = await loadText('../shaders/DragTapeTool.frag');
-        DragTapeTool.ready = true;
-        DragTapeTool.palette = new CyclePalette(palette01);
+        DrifterTool.vertexShaderSource = await loadText('../shaders/common.vert');
+        DrifterTool.fragmentShaderSource = await loadText('../shaders/DrifterTool.frag');
+        DrifterTool.ready = true;
+        DrifterTool.palette = new CyclePalette(palette01);
     }
 
     constructor() {
@@ -21,7 +22,7 @@ export class DragTapeTool {
         this.count = 0;
         this.maxCount = 90;
         this.isDone = false;
-        this.color = DragTapeTool.palette.get();
+        this.color = DrifterTool.palette.get();
         this.points = [];
 
         this.sideUniformLength = 128;
@@ -73,8 +74,8 @@ export class DragTapeTool {
     updatePrintObj() {
         if (!this.printObj) {
             const stripMaterial = new THREE.ShaderMaterial({
-                vertexShader: DragTapeTool.vertexShaderSource,
-                fragmentShader: DragTapeTool.fragmentShaderSource,
+                vertexShader: DrifterTool.vertexShaderSource,
+                fragmentShader: DrifterTool.fragmentShaderSource,
                 uniforms: {
                     res: { value: new THREE.Vector2(this.data.context.width, this.data.context.height)},
                 }
@@ -98,7 +99,7 @@ export class DragTapeTool {
         this.prevLength = nSideLength;
 
         if (len0 > this.sideUniformLength) {
-            console.log(`WARNING: The strip has too many vertices ${len0}, ${len1}. Keep it under ${targetLength}` );
+            console.log(`WARNING: The strip has too many vertices ${len0}, ${len1}. Keep it under ${this.sideUniformLength}` );
         }
 
         uniforms.nSidePoints = {value: nSideLength};

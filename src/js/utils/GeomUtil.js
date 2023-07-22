@@ -201,26 +201,65 @@ export function blobGeomDataFromVertices(vertices) {
     ];
 }
 
-
-
-//////// TO DELETE
-/*
-export function stripFromSides(side) {
-    const n = Math.min(side[0].length, side[1].length);
-    const arr = [];
-    for (let i = 0; i < n; i++) {
-        arr.push(side[0][i]);
-        arr.push(side[1][i]);
+export function disposeObject(obj) {
+    if (obj.parent) {
+        obj.parent.remove(obj);
     }
-    return stripFromArray(arr);
-}
 
-export function stripFromArray(vertices) {
-    //const geometry = new THREE.BufferGeometry();
-    const data = stripGeomDataFromArray(vertices);
-    //geometry.setAttribute('position', new THREE.BufferAttribute(data.positions, 3));
-    //geometry.setAttribute('uv', new THREE.BufferAttribute(data.uvs, 2));
-    return dataToGeom(data);
-}
+    if (obj.geometry) {
+        obj.geometry.dispose();
+    }
 
-*/
+    if (obj.material) {
+        if (Array.isArray(obj.material)) {
+            obj.material.forEach((material) => {
+                if (material.map) {
+                    material.map.dispose();
+                }
+                if (material.lightMap) {
+                    material.lightMap.dispose();
+                }
+                if (material.bumpMap) {
+                    material.bumpMap.dispose();
+                }
+                if (material.normalMap) {
+                    material.normalMap.dispose();
+                }
+                if (material.specularMap) {
+                    material.specularMap.dispose();
+                }
+                if (material.envMap) {
+                    material.envMap.dispose();
+                }
+                material.dispose();
+            });
+        } else {
+            if (obj.material.map) {
+                obj.material.map.dispose();
+            }
+            if (obj.material.lightMap) {
+                obj.material.lightMap.dispose();
+            }
+            if (obj.material.bumpMap) {
+                obj.material.bumpMap.dispose();
+            }
+            if (obj.material.normalMap) {
+                obj.material.normalMap.dispose();
+            }
+            if (obj.material.specularMap) {
+                obj.material.specularMap.dispose();
+            }
+            if (obj.material.envMap) {
+                obj.material.envMap.dispose();
+            }
+            obj.material.dispose();
+        }
+    }
+
+    // Recursively dispose children
+    if (obj.children) {
+        while (obj.children.length > 0) {
+            disposeObject(obj.children[0]);
+        }
+    }
+}

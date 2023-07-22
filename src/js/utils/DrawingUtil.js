@@ -47,69 +47,6 @@ export function stripSidesFromArray(arr, width) {
     return sides;
 }
 
-export function disposeObject(obj) {
-    if (obj.parent) {
-        obj.parent.remove(obj);
-    }
-
-    if (obj.geometry) {
-        obj.geometry.dispose();
-    }
-
-    if (obj.material) {
-        if (Array.isArray(obj.material)) {
-            obj.material.forEach((material) => {
-                if (material.map) {
-                    material.map.dispose();
-                }
-                if (material.lightMap) {
-                    material.lightMap.dispose();
-                }
-                if (material.bumpMap) {
-                    material.bumpMap.dispose();
-                }
-                if (material.normalMap) {
-                    material.normalMap.dispose();
-                }
-                if (material.specularMap) {
-                    material.specularMap.dispose();
-                }
-                if (material.envMap) {
-                    material.envMap.dispose();
-                }
-                material.dispose();
-            });
-        } else {
-            if (obj.material.map) {
-                obj.material.map.dispose();
-            }
-            if (obj.material.lightMap) {
-                obj.material.lightMap.dispose();
-            }
-            if (obj.material.bumpMap) {
-                obj.material.bumpMap.dispose();
-            }
-            if (obj.material.normalMap) {
-                obj.material.normalMap.dispose();
-            }
-            if (obj.material.specularMap) {
-                obj.material.specularMap.dispose();
-            }
-            if (obj.material.envMap) {
-                obj.material.envMap.dispose();
-            }
-            obj.material.dispose();
-        }
-    }
-
-    // Recursively dispose children
-    if (obj.children) {
-        while (obj.children.length > 0) {
-            disposeObject(obj.children[0]);
-        }
-    }
-}
-
 export function qubicBezier(p0, p1, p2, p3, t) {
     const x = qubicBezier1D(p0.x, p1.x, p2.x, p3.x, t);
     const y = qubicBezier1D(p0.y, p1.y, p2.y, p3.y, t);

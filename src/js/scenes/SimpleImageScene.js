@@ -13,7 +13,7 @@ export class SimpleImageScene extends SceneBase {
 
 
     async setup() {
-        console.log("setup is overridden")
+        //console.log("setup is overridden")
         await this.setupMain();
     }
 
@@ -25,7 +25,7 @@ export class SimpleImageScene extends SceneBase {
         const textureLoader = new THREE.TextureLoader();
         this.texture = await textureLoader.load(this.imagePath, 
             (texture)=> {
-                console.log(this)
+                //console.log(this)
                 this.planeObject.material.uniforms.tex = {value: this.texture}
                 // This callback function will be called once the image is loaded and set as the texture's image.
                 console.log('Texture loaded successfully!');

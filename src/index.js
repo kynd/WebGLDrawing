@@ -10,7 +10,8 @@ import { PointersOnShader02 } from "./js/scenarios/_archive/PointersOnShader02.j
 import { SaveTest } from "./js/scenarios/_archive/SaveTest.js";
 import { CircleSketch } from "./js/scenarios/_archive/CircleSketch";
 import { DraggableDrawingTool } from "./js/scenarios/DraggableDrawingTool";
+import { DrawingTool } from "./js/scenarios/DrawingTool";
 
 $(()=>{
-    new DraggableDrawingTool();
+    new DrawingTool();
 });
