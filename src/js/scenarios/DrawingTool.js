@@ -93,6 +93,9 @@ export class DrawingTool extends ScenarioBase {
 
     bindShortCuts() {
         $(document).on("keypress", (evt)=>{
+            if (evt.key === "=") { if (this.activeTool) {
+                this.bringObjToTop(this.activeTool);
+            } }
             if (evt.key === "\\") { this.togglePreview(); }
             if (evt.key == " ") { 
                 this.isToolDisplayVisible = !this.isToolDisplayVisible; this.updateToolDisplay(); }
@@ -184,7 +187,6 @@ export class DrawingTool extends ScenarioBase {
             this.scene.add(this.activeTool.getPreviewObj());
             this.mainScene.add(this.activeTool.getMainObj());
             this.toolInstances.push(tool);
-            //this.bringObjToTop(this.activeTool);
         }
     }
 
@@ -245,10 +247,8 @@ export class DrawingTool extends ScenarioBase {
         this.isDragging = false;
     }
 
-    
-
     bringObjToTop(target) {
-        /*
+        console.log("A");
         const idx = this.toolInstances.findIndex(t => t === target);
 
         if (idx !== -1) {
@@ -256,14 +256,9 @@ export class DrawingTool extends ScenarioBase {
             this.toolInstances.push(target);
         }
         this.toolInstances.forEach((tool, i) => {
-            tool.mainObj.renderOrder = i;
+            tool.view.viewObj.renderOrder = i;
         })
-        */
     }
-    /*
-    pointerDownNew(evt) {
-    }
-    */
 
     updateTool(tool) {
         tool.update({
