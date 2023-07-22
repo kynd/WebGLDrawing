@@ -2,31 +2,24 @@ import * as THREE from 'three';
 import $ from "jquery";
 import { ScenarioBase } from "./ScenarioBase.js";
 import { PingPong } from '../scenes/PingPong.js';
+import { SimpleImageScene } from '../scenes/SimpleImageScene.js';
+
 import { Menu } from "../utils/Menu.js";
 import { ColorSelector } from "../utils/ColorSelector.js";
-import { QuadDraggableTool } from "../draggableTools/QuadDraggableTool.js"
 
+import { ToolView } from "../toolViews/ToolView.js";
 import { QuadView } from "../toolViews/QuadView.js";
 import { OvalView } from "../toolViews/OvalView.js";
 import { StrokeView } from "../toolViews/StrokeView.js";
 import { BlobView } from "../toolViews/BlobView.js";
 import { SpiralView } from "../toolViews/SpiralView.js";
 import { WaveView } from "../toolViews/WaveView.js";
+
+
+import { ToolControl } from '../toolControls/ToolControl.js';
 import { BoxControl } from "../toolControls/BoxControl.js";
 import { StripControl } from "../toolControls/StripControl.js";
 import { LoopControl } from "../toolControls/LoopControl.js";
-
-
-/*
-import { OvalDraggableTool } from "../draggableTools/OvalDraggableTool.js"
-import { StrokeDraggableTool } from "../draggableTools/StrokeDraggableTool.js"
-import { SpiralDraggableTool } from "../draggableTools/SpiralDraggableTool.js"
-import { WaveDraggableTool } from "../draggableTools/WaveDraggableTool.js"
-import { BlobDraggableTool } from "../draggableTools/BlobDraggableTool.js"
-*/
-import { SimpleImageScene } from '../scenes/SimpleImageScene.js';
-import { DraggableTool } from '../draggableTools/DraggableTool.js';
-import { ToolControl } from '../toolControls/ToolControl.js';
 
 export class DrawingTool extends ScenarioBase {
     constructor() {
@@ -46,12 +39,6 @@ export class DrawingTool extends ScenarioBase {
             {label: "Blob", key: "b", view: BlobView, control: LoopControl},
             {label: "Oval", key: "o", view: OvalView, control: BoxControl},
             {label: "Quad", key: "q", view: QuadView, control: BoxControl}
-            /*,
-            {label: "Blob", key: "b", obj: BlobDraggableTool},
-            {label: "Spiral", key: "r", obj: SpiralDraggableTool},
-            {label: "Wave", key: "w", obj: WaveDraggableTool},
-            {label: "Stroke", key: "s", obj: StrokeDraggableTool},
-            */
         ]
     }
 
@@ -87,12 +74,12 @@ export class DrawingTool extends ScenarioBase {
 
     createFillMenu() {
         const fillMenuDef = [];
-        for (let key in DraggableTool.materials) {
+        for (let key in ToolView.materials) {
             if (!this.context.selectedMaterial) {
                 this.context.selectedMaterial = key;
             }
-            if (DraggableTool.materials.hasOwnProperty(key)) {
-                fillMenuDef.push({label: key, key: DraggableTool.materials[key].key, f: ()=>{this.context.selectedMaterial = key}});
+            if (ToolView.materials.hasOwnProperty(key)) {
+                fillMenuDef.push({label: key, key: ToolView.materials[key].key, f: ()=>{this.context.selectedMaterial = key}});
             }
         }
         this.fillMenu = new Menu(fillMenuDef, "]");
@@ -135,26 +122,6 @@ export class DrawingTool extends ScenarioBase {
             this.toolList.forEach((tool)=>{
                 ready &= tool.view.ready;
             });
-            ready &= QuadView.ready;
-            if (ready) {
-                this.quadView = new QuadView(this.context);
-                this.quadView.vertices.push(new THREE.Vector3(-200, -200, 0));
-                this.quadView.vertices.push(new THREE.Vector3(200, -200, 0));
-                this.quadView.vertices.push(new THREE.Vector3(200, 200, 0));
-                this.quadView.vertices.push(new THREE.Vector3(-200, 200, 0));
-
-                this.quadView.update({
-                    canvasTexture: this.pingPong.getCopyRenderTarget().texture,
-                    referenceTexture: this.imageScene.texture,
-                    context: this.context,
-                    toolParams: this.selectedToolDef.params,
-                    colors:[...this.colorSelector.selectionColors]
-                });
-                this.mainScene.add(this.quadView.viewObj);
-
-
-                this.clear();
-            }
             return ready;
         });
     }
