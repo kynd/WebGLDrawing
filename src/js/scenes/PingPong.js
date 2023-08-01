@@ -10,40 +10,6 @@ export class PingPong extends SceneBase {
         this.setup();
     }
 
-    clear(color) {
-        console.log("Clear")
-        if (!color) {
-            color = new THREE.Color(0xFFFFFFFF);
-        }
-        const originalClearColor = new THREE.Color();
-        this.context.renderer.getClearColor(originalClearColor);
-        this.context.renderer.setClearColor(color);
-        this.renderTargets.forEach(target=>{
-            this.context.renderer.setRenderTarget(target);
-            this.context.renderer.clear(true,  true, true);
-        });
-        this.context.renderer.setRenderTarget(null)
-        this.context.renderer.setClearColor(originalClearColor);
-        this.copyRenderTargetNeedsUpdate = true;
-    }
-
-    getCurrentRenderTarget() {
-        return this.renderTargets[this.pingpongIndex];
-    }
-
-    getCopyRenderTarget() {
-        if (this.copyRenderTargetNeedsUpdate) {
-            this.copyPlaneObject.material.uniforms.tex.value = this.getCurrentRenderTarget().texture;
-            this.context.renderer.setRenderTarget(this.copyRenderTarget);
-            this.context.renderer.autoClear = false;
-            this.context.renderer.render( this.copyScene, this.context.camera);
-            this.context.renderer.autoClear = true;
-            this.context.renderer.setRenderTarget(null);
-            this.copyRenderTargetNeedsUpdate = false;
-        }
-        return this.copyRenderTarget;
-    }
-
     async setupMain() {
         const vertexShaderSource = await loadText('../shaders/common.vert');
         const fragmentShaderSource = await loadText(this.fragPath);
@@ -117,4 +83,39 @@ export class PingPong extends SceneBase {
         this.pingpongIndex = iB;
         this.copyRenderTargetNeedsUpdate = true;
     }
+    
+    clear(color) {
+        console.log("Clear")
+        if (!color) {
+            color = new THREE.Color(0xFFFFFFFF);
+        }
+        const originalClearColor = new THREE.Color();
+        this.context.renderer.getClearColor(originalClearColor);
+        this.context.renderer.setClearColor(color);
+        this.renderTargets.forEach(target=>{
+            this.context.renderer.setRenderTarget(target);
+            this.context.renderer.clear(true,  true, true);
+        });
+        this.context.renderer.setRenderTarget(null)
+        this.context.renderer.setClearColor(originalClearColor);
+        this.copyRenderTargetNeedsUpdate = true;
+    }
+
+    getCurrentRenderTarget() {
+        return this.renderTargets[this.pingpongIndex];
+    }
+
+    getCopyRenderTarget() {
+        if (this.copyRenderTargetNeedsUpdate) {
+            this.copyPlaneObject.material.uniforms.tex.value = this.getCurrentRenderTarget().texture;
+            this.context.renderer.setRenderTarget(this.copyRenderTarget);
+            this.context.renderer.autoClear = false;
+            this.context.renderer.render( this.copyScene, this.context.camera);
+            this.context.renderer.autoClear = true;
+            this.context.renderer.setRenderTarget(null);
+            this.copyRenderTargetNeedsUpdate = false;
+        }
+        return this.copyRenderTarget;
+    }
+
 }

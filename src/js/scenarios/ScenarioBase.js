@@ -40,7 +40,6 @@ export class ScenarioBase {
         let gl = this.context.renderer.getContext();
         const maxVertexUniformVectors = gl.getParameter(gl.MAX_VERTEX_UNIFORM_VECTORS);
         const maxFragmentUniformVectors = gl.getParameter(gl.MAX_FRAGMENT_UNIFORM_VECTORS);
-        console.log(maxVertexUniformVectors, maxFragmentUniformVectors)
     }
 
     _pointerMove(evt){ if (!this.paused) {this.pointerMove(evt);} }
@@ -82,15 +81,19 @@ export class ScenarioBase {
 
     // ------------------
 
+
+    async showDirectoryPicker() {
+        this.imageSaver = new ImageSequenceSaver();
+        await this.imageSaver.showDirectoryPicker();
+    }
+
     async saveCanvasImageSequence() {
+        console.log(this.imageSaver)
         this.paused = true;
-        if (!this.imageSaver) {
-            this.imageSaver = new ImageSequenceSaver();
-            await this.imageSaver.showDirectoryPicker();
+        if (this.imageSaver) {
+            console.log("saving")
+            await this.imageSaver.saveCanvasImage(this.context.canvasElm);
         }
-        console.log("saving")
-        await this.imageSaver.saveCanvasImage(this.context.canvasElm);
-        
         this.paused = false;
     }
 

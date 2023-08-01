@@ -8,35 +8,31 @@ export class ToolView {
     static vertexShaderSource = "";
 
     static materials = {
-        SAMPLE_HEX: {
-            src: '../shaders/DrawingTools/sample_hex.frag',
-            key: "1"
+        SAMPLE_SCRATCH: {
+            src: '../shaders/DrawingTools/sample_scratch.frag'
+        },
+        SAMPLE_SLIDE: {
+            src: '../shaders/DrawingTools/sample_slide.frag'
         },
         FLAT: {
-            src: '../shaders/DrawingTools/flat.frag',
-            key: "2"
+            src: '../shaders/DrawingTools/flat.frag'
         },
         STRIPE_X: {
             src: '../shaders/DrawingTools/stripe.frag',
-            key: "3",
             uniforms: {dir : 0}
         },
         STRIPE_Y: {
             src: '../shaders/DrawingTools/stripe.frag',
-            key: "4",
             uniforms: {dir : 1}
         },
         GRADIENT: {
-            src: '../shaders/DrawingTools/gradient.frag',
-            key: "5"
+            src: '../shaders/DrawingTools/gradient.frag'
         },
         SAMPLE: {
-            src: '../shaders/DrawingTools/sample.frag',
-            key: "6"
+            src: '../shaders/DrawingTools/sample.frag'
         },
         SAMPLE_CANVAS: {
-            src: '../shaders/DrawingTools/sample_canvas.frag',
-            key: "7"
+            src: '../shaders/DrawingTools/sample_canvas.frag'
         }
     }
 
@@ -45,8 +41,8 @@ export class ToolView {
         this.vertices = [];
         this.colors = Array.from({ length: 4 }, () => new THREE.Color(0, 0, 0));
         this.isInitialCoordInSync = true;
-        const mainMaterial = this.getNewMaterial(this.context.selectedMaterial);
-        this.viewObj = new THREE.Mesh(new THREE.BufferGeometry(), mainMaterial);
+        this.mainMaterial = this.getNewMaterial(this.context.selectedMaterial);
+        this.viewObj = new THREE.Mesh(new THREE.BufferGeometry(), this.mainMaterial);
     }
 
     static async initMaterials() {
@@ -92,6 +88,7 @@ export class ToolView {
         uniforms.c1 = {value: this.colors[1].toArray()};
         uniforms.c2 = {value: this.colors[2].toArray()};
         uniforms.c3 = {value: this.colors[3].toArray()};
+        //console.log(this.colors[0].r)
         uniforms.res = { value: new THREE.Vector2(this.data.context.width, this.data.context.height)};
     }
 

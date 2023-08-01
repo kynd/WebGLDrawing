@@ -37,6 +37,7 @@
     "webpack-merge": "^5.8.0"
   },
   "dependencies": {
+    "noisejs": "^2.1.0",
     "three": "^0.151.3"
   }
 }

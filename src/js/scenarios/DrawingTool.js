@@ -56,8 +56,6 @@ export class DrawingTool extends ScenarioBase {
         this.createFillMenu();
         this.createColorSelector();
         this.bindShortCuts();
-
-        QuadView.init();
     }
 
     createMenu() {
@@ -74,12 +72,14 @@ export class DrawingTool extends ScenarioBase {
 
     createFillMenu() {
         const fillMenuDef = [];
+        let i = 1;
         for (let key in ToolView.materials) {
             if (!this.context.selectedMaterial) {
                 this.context.selectedMaterial = key;
             }
             if (ToolView.materials.hasOwnProperty(key)) {
-                fillMenuDef.push({label: key, key: ToolView.materials[key].key, f: ()=>{this.context.selectedMaterial = key}});
+                fillMenuDef.push({label: key, key: i + "", f: ()=>{this.context.selectedMaterial = key}});
+                i ++;
             }
         }
         this.fillMenu = new Menu(fillMenuDef, "]");
@@ -248,7 +248,6 @@ export class DrawingTool extends ScenarioBase {
     }
 
     bringObjToTop(target) {
-        console.log("A");
         const idx = this.toolInstances.findIndex(t => t === target);
 
         if (idx !== -1) {
