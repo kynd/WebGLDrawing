@@ -81,7 +81,6 @@ export class ScenarioBase {
 
     // ------------------
 
-
     async showDirectoryPicker() {
         this.imageSaver = new ImageSequenceSaver();
         await this.imageSaver.showDirectoryPicker();

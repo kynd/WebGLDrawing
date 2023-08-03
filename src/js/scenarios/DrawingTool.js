@@ -28,6 +28,7 @@ export class DrawingTool extends ScenarioBase {
         this.setToolList();
         this.setup();
         this.asyncStart();
+        this.context.clearColor = new THREE.Color(0xFFEEDDCC);
         this.isToolDisplayVisible = false;
     }
 
@@ -51,6 +52,8 @@ export class DrawingTool extends ScenarioBase {
         this.activeTool = null;
         this.toolInstances = [];
         this.hitTargets = [];
+
+        this.context.clearColor = new THREE.Color(0xFFFFFFFF);
         
         this.createMenu();
         this.createFillMenu();
@@ -93,10 +96,16 @@ export class DrawingTool extends ScenarioBase {
 
     bindShortCuts() {
         $(document).on("keypress", (evt)=>{
-            if (evt.key === "=") { if (this.activeTool) {
-                this.bringObjToTop(this.activeTool);
-            } }
-            if (evt.key === "\\") { this.togglePreview(); }
+            if (evt.key === "\\") { 
+                console.log("del")
+                if (this.activeTool) { this.delete(this.activeTool); }
+            }
+            if (evt.key == "=") { 
+                if (this.activeTool) { this.bringObjToTop(this.activeTool); }
+            }
+            if (evt.key == "-") { 
+                if (this.activeTool) { this.bringObjToBottom(this.activeTool); }
+            }
             if (evt.key == " ") { 
                 this.isToolDisplayVisible = !this.isToolDisplayVisible; this.updateToolDisplay(); }
             if (evt.key == ",") { this.selectedToolDef.params.sizeA = Math.max(1, this.selectedToolDef.params.sizeA - 1); this.updateToolDisplay()}
@@ -125,6 +134,9 @@ export class DrawingTool extends ScenarioBase {
             this.toolList.forEach((tool)=>{
                 ready &= tool.view.ready;
             });
+            if (ready) {
+                this.clear();
+            }
             return ready;
         });
     }
@@ -233,7 +245,7 @@ export class DrawingTool extends ScenarioBase {
     }
 
     clear() {
-        this.pingPong.clear();
+        this.pingPong.clear(this.context.clearColor);
     }
 
     print() {
@@ -259,6 +271,28 @@ export class DrawingTool extends ScenarioBase {
         })
     }
 
+    bringObjToBottom(target) {
+        const idx = this.toolInstances.findIndex(t => t === target);
+
+        if (idx !== -1) {
+            this.toolInstances.splice(idx, 1)[0];
+            this.toolInstances.unshift(target);
+        }
+        this.toolInstances.forEach((tool, i) => {
+            tool.view.viewObj.renderOrder = i;
+        })
+    }
+
+    delete(target) {
+        const idx = this.toolInstances.findIndex(t => t === target);
+
+        if (idx !== -1) {
+            const target = this.toolInstances.splice(idx, 1)[0];
+            target.dispose();
+            this.activeTool = null;
+        }
+    }
+
     updateTool(tool) {
         tool.update({
             canvasTexture: this.pingPong.getCopyRenderTarget().texture,
@@ -267,9 +301,5 @@ export class DrawingTool extends ScenarioBase {
             toolParams: this.selectedToolDef.params,
             colors:[...this.colorSelector.selectionColors]
         });
-    }
-
-    togglePreview() {
-        this.isPreviewing = !this.isPreviewing;
     }
 }

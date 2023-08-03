@@ -1,7 +1,7 @@
 
 import * as THREE from 'three';
 import { ToolView } from './ToolView.js';
-import { createBezierCP2, cpToBezier, stripSidesFromArray } from "../utils/DrawingUtil.js"
+import { createBezierCP2, cpToBezier, stripSidesFromArray, approxLenFromPointArr } from "../utils/DrawingUtil.js"
 import { stripGeomDataFromSides, dataToGeom } from "../utils/GeomUtil.js"
 
 export class SpiralView extends ToolView {
@@ -43,6 +43,9 @@ export class SpiralView extends ToolView {
         }
         data.push(this.initialPosition);
         this.viewObj.geometry = dataToGeom(data);
+
+        this.approxL = approxLenFromPointArr(bezierPoints);
+        this.approxW = width;
     }
 }
 

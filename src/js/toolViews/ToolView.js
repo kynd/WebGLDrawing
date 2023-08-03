@@ -8,6 +8,9 @@ export class ToolView {
     static vertexShaderSource = "";
 
     static materials = {
+        LAGGED: {
+            src: '../shaders/DrawingTools/lagged.frag'
+        },
         SAMPLE_SCRATCH: {
             src: '../shaders/DrawingTools/sample_scratch.frag'
         },
@@ -40,6 +43,7 @@ export class ToolView {
         this.context = context;
         this.vertices = [];
         this.colors = Array.from({ length: 4 }, () => new THREE.Color(0, 0, 0));
+        this.approxW = this.approxL = 0;
         this.isInitialCoordInSync = true;
         this.mainMaterial = this.getNewMaterial(this.context.selectedMaterial);
         this.viewObj = new THREE.Mesh(new THREE.BufferGeometry(), this.mainMaterial);
@@ -83,12 +87,12 @@ export class ToolView {
         const uniforms = this.viewObj.material.uniforms;
         uniforms.canvasTexture = {value: this.data.canvasTexture};
         uniforms.referenceTexture = {value: this.data.referenceTexture};
-
+        uniforms.clearColor = {value: this.context.clearColor.toArray()};
         uniforms.c0 = {value: this.colors[0].toArray()};
         uniforms.c1 = {value: this.colors[1].toArray()};
         uniforms.c2 = {value: this.colors[2].toArray()};
         uniforms.c3 = {value: this.colors[3].toArray()};
-        //console.log(this.colors[0].r)
+        uniforms.approxSize = {value: [this.approxW, this.approxL]}
         uniforms.res = { value: new THREE.Vector2(this.data.context.width, this.data.context.height)};
     }
 

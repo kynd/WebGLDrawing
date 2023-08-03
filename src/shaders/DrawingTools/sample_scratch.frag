@@ -1,10 +1,12 @@
 varying vec2 vUv;
 varying vec3 vNormal;
 varying vec3 vInitialPosition;
-uniform vec2 res;
 
-uniform sampler2D referenceTexture;
+uniform vec2 res;
+uniform vec2 approxSize;
+uniform vec3 clearColor;
 uniform vec3 c0, c1, c2, c3;
+uniform sampler2D referenceTexture;
 uniform sampler2D canvasTexture;
 /*
 Simplex Noise code is from:
@@ -304,14 +306,15 @@ vec3 col(vec2 disp) {
     vec2 sampCrd = (vInitialPosition.xy / res) + vec2(0.5);
     vec4 samp = texture2D(canvasTexture, sampCrd + disp);
 
-    
-    vec3 ca = rColor(vec3(vUv * 20.0, 1.0));//mix(c0, c1, uv.s);
-    vec3 cb = rColor(vec3(vUv * 20.0, 2.0));//mix(c2, c3, uv.s);
+    float minSize = min(res.x, res.y);
+    vec2 detailFreq = vec2(240.0, 20.0);
+    vec3 ca = rColor(vec3(vUv * detailFreq * approxSize / minSize, 1.0));//mix(c0, c1, uv.s);
+    vec3 cb = rColor(vec3(vUv * detailFreq * approxSize / minSize, 2.0));//mix(c2, c3, uv.s);
     vec3 color = mix(ca, cb, abs(uv.t - 0.5) * 2.0);
-    
-    if (length(samp.rgb - vec3(1.0)) > 0.01) {
+   
+    if (length(samp.rgb - clearColor.rgb) > 0.01) {
         color = mix(ca, cb, 1.0 - abs(uv.t - 0.5) * 2.0);
-        color = mix(cb, samp.rgb, 1.0);
+        color = mix(cb, samp.rgb, 0.75);
     }
     return color;
 }
@@ -324,7 +327,7 @@ void main( void ) {
         float lev = n - i;
         vec2 dir = vec2(snoise(vec3(c0.rg * 100.0, 1.0)), snoise(vec3(c1.rg * 100.0, 5.0)));
         dir *= snoise(vec3(vUv * 100.0, 1.0));
-        vec2 disp = dir * float(i) / res * 2.0;
+        vec2 disp = dir * float(i) / res * 24.0;
         color += col(disp) * lev;
         sum += lev;
     }

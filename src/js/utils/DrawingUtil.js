@@ -225,3 +225,27 @@ export function createBezierCpLoop(p) {
 
     return pts;
 }
+
+export function approxLenFromPointArr(arr) {
+    let length = 0;
+    for (let i = 0; i < arr.length - 1; i ++) {
+        length += arr[i].distanceTo(arr[i + 1]);
+    }
+    return length;
+}
+
+export function approxWLfromPointArr(arr) {
+    let minX, minY, maxX, maxY;
+    for (let i = 0; i < arr.length; i ++) {
+        if (i == 0) {
+            minX = maxX = arr[i].x;
+            minY = maxY = arr[i].y;
+        } else {
+            minX = Math.min(minX, arr[i].x);
+            minY = Math.min(minY, arr[i].y);
+            maxX = Math.max(maxX, arr[i].x);
+            maxY = Math.max(maxY, arr[i].y);
+        }
+    }
+    return {w: maxX - minX, l: maxY - minY};
+}

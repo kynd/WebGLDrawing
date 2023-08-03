@@ -85,7 +85,6 @@ export class PingPong extends SceneBase {
     }
     
     clear(color) {
-        console.log("Clear")
         if (!color) {
             color = new THREE.Color(0xFFFFFFFF);
         }

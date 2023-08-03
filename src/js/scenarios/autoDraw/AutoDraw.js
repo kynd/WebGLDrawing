@@ -28,11 +28,13 @@ export class AutoDraw extends ScenarioBase {
     }
 
     setup() {
-        this.endSavingFrame = 60 * 80;
+        this.endSavingFrame = 60 * 30;
         this.scene = new THREE.Scene();
         this.mainScene = new THREE.Scene();
         this.pingPong = new PingPong(this.context, '../shaders/simple_image.frag');
         this.imageScene = new SimpleImageScene(this.context, '../img/tiger.jpg');
+
+        this.context.clearColor = new THREE.Color(0xFFFFFFFF);
 
         this.step = 0;
         this.activeTool = null;
@@ -63,8 +65,6 @@ export class AutoDraw extends ScenarioBase {
 
         this.createColorSelector();
 
-
-
         $(document).on("keypress", (evt)=>{
             if (evt.key == "p") { this.saveCanvasImage(); }
         });
@@ -85,6 +85,7 @@ export class AutoDraw extends ScenarioBase {
             });
 
             if (ready) {
+                this.clear(this.context.clearColor);
                 if (this.saving) {
                     if (!this.hasPickerAdded) {
                         this.hasPickerAdded = true;
@@ -92,12 +93,10 @@ export class AutoDraw extends ScenarioBase {
                             await this.showDirectoryPicker();
                             console.log("READY");
                             this.ready = true;
-                            //this.pingPong.clear(new THREE.Color(0, 0.1, 0.2, 1));
                         });
                     }
                 } else {
                     this.ready = true;
-                    //this.pingPong.clear(new THREE.Color(0, 0.1, 0.2, 1));
                 }
             } 
             return this.ready;
@@ -198,8 +197,8 @@ export class AutoDraw extends ScenarioBase {
         }
     }
 
-    clear() {
-        this.pingPong.clear();
+    clear(color) {
+        this.pingPong.clear(color);
     }
 
     print() {

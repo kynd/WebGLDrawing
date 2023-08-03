@@ -3,8 +3,9 @@ varying vec3 vNormal;
 varying vec3 vInitialPosition;
 uniform vec2 res;
 
-uniform sampler2D referenceTexture;
+uniform vec3 clearColor;
 uniform vec3 c0, c1, c2, c3;
+uniform sampler2D referenceTexture;
 uniform sampler2D canvasTexture;
 
 vec3 random3(vec3 c) {
@@ -63,9 +64,9 @@ vec3 col(vec2 disp) {
     vec3 ca = mix(c0, c1, uv.s);
     vec3 cb = mix(c2, c3, uv.s);
     vec3 color = mix(ca, cb, abs(uv.t - 0.5) * 2.0);
-    if (length(samp.rgb - vec3(1.0)) > 0.01) {
+    if (length(samp.rgb - clearColor.rgb) > 0.01) {
         color = mix(ca, cb, 1.0 - abs(uv.t - 0.5) * 2.0);
-        color = mix(cb, samp.rgb, 0.5);
+        color = mix(cb, samp.rgb, 0.75);
     }
     return color;
 }
@@ -77,7 +78,7 @@ void main( void ) {
     for (float i = 0.0; i < n; i += 1.0) {
         float lev = n - i;
         vec2 dir = vec2(snoise(vec3(c0.rg * 100.0, 1.0)), snoise(vec3(c1.rg * 100.0, 5.0)));
-        vec2 disp = dir * float(i) / res * 1.0;
+        vec2 disp = dir * float(i) / res * 4.0;
         color += col(disp) * lev;
         sum += lev;
     }

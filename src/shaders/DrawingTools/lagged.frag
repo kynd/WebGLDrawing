@@ -1,8 +1,9 @@
 varying vec2 vUv;
 varying vec3 vNormal;
 varying vec3 vInitialPosition;
-uniform vec2 res;
 
+uniform vec2 res;
+uniform vec2 approxSize;
 uniform sampler2D referenceTexture;
 uniform vec3 c0, c1, c2, c3;
 uniform sampler2D canvasTexture;
@@ -86,17 +87,15 @@ vec3 col(vec2 disp) {
 }
 
 void main( void ) {
-    vec3 color = vec3(0.0);
-    float n = 64.0;
-    float sum = 0.0;
-    for (float i = 0.0; i < n; i += 1.0) {
-        float lev = n - i;
-        vec2 dir = vec2(snoise(vec3(c0.rg * 100.0, 1.0)), snoise(vec3(c1.rg * 100.0, 5.0)));
-        dir *= snoise(vec3(vUv * 100.0, 1.0));
-        vec2 disp = dir * float(i) / res * 25.0;
-        color += col(disp) * lev;
-        sum += lev;
-    }
-    color /= sum;
-    gl_FragColor = vec4(color, 1.0);
+    vec3 color = vec3(1.0);
+    float dx = 1.0 - (max(vUv.x, 1.0 - vUv.x) - 0.5) * 2.0;
+    float dy = 1.0 - (max(vUv.y, 1.0 - vUv.y) - 0.5) * 2.0;
+    float minSide = min(res.x, res.y);
+    dx *= approxSize.x / 50.0;
+    dy *= approxSize.y / 50.0;
+    float d = min(dx, dy);
+    float n = snoise(vec3(gl_FragCoord.xy / res * 10.0 * vUv, c1.r * 100.0));
+    float a = 1.0 - smoothstep(0.0, 0.2, 1.0 - d - abs(n));
+
+    gl_FragColor = vec4(c0, a);
 }

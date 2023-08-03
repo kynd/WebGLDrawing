@@ -1,6 +1,7 @@
 
 import * as THREE from 'three';
 import { ToolView } from './ToolView.js';
+import { approxWLfromPointArr } from "../utils/DrawingUtil.js"
 import { blobGeomDataFromVertices, dataToGeom } from "../utils/GeomUtil.js"
 
 export class BlobView extends ToolView {
@@ -23,5 +24,9 @@ export class BlobView extends ToolView {
         }
         data.push(this.initialPosition);
         this.viewObj.geometry = dataToGeom(data);
+
+        const wl = approxWLfromPointArr(this.vertices);
+        this.approxW = wl.w;
+        this.approxL = wl.l;
     }
 }

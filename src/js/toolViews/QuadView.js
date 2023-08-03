@@ -23,5 +23,8 @@ export class QuadView extends ToolView {
         }
         data.push(this.initialPosition);
         this.viewObj.geometry = dataToGeom(data);
+
+        this.approxW = (this.vertices[0].distanceTo(this.vertices[1]) + this.vertices[2].distanceTo(this.vertices[3])) / 2;
+        this.approxL = (this.vertices[0].distanceTo(this.vertices[3]) + this.vertices[1].distanceTo(this.vertices[2])) / 2;
     }
 }

@@ -1,7 +1,7 @@
 
 import * as THREE from 'three';
 import { ToolView } from './ToolView.js';
-import { createBezierCP, cpToBezier, stripSidesFromArray } from "../utils/DrawingUtil.js"
+import { createBezierCP, cpToBezier, stripSidesFromArray, approxLenFromPointArr } from "../utils/DrawingUtil.js"
 import { stripGeomDataFromSides, dataToGeom } from "../utils/GeomUtil.js"
 
 export class StrokeView extends ToolView {
@@ -29,5 +29,8 @@ export class StrokeView extends ToolView {
         }
         data.push(this.initialPosition);
         this.viewObj.geometry = dataToGeom(data);
+        
+        this.approxL = approxLenFromPointArr(bezierPoints);
+        this.approxW = width * 2;
     }
 }
