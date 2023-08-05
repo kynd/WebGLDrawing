@@ -26,7 +26,7 @@ export class StripControl extends ToolControl {
 
         const pointer = this.data.context.pointer;
         const vp = new THREE.Vector3(pointer.x, pointer.y, 0);
-        if (this.vertices[this.vertices.length - 2].distanceTo(vp) > 4) {
+        if (this.vertices[this.vertices.length - 2].distanceTo(vp) > 8) {
             this.vertices.push(vp);
         } else {
             if (this.vertices.length > 2) {

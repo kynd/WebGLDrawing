@@ -24,6 +24,7 @@ import { LoopControl } from "../toolControls/LoopControl.js";
 export class DrawingTool extends ScenarioBase {
     constructor() {
         super();
+        this.isSaving = true;
         this.setupContext(1920, 1920);
         this.setToolList();
         this.setup();
@@ -114,7 +115,7 @@ export class DrawingTool extends ScenarioBase {
             if (evt.key == "'") { this.selectedToolDef.params.sizeB = Math.min(10, this.selectedToolDef.params.sizeB + 1); this.updateToolDisplay()}
             if (evt.key == "z") { this.colorSelector.randomize(); }
             if (evt.key == "p") { this.print(); }
-            if (evt.key == "c") { this.clear(); }
+            if (evt.key == "c") { this.clear(this.context.clearColor); }
             if (this.activeTool) {
                 this.updateTool(this.activeTool);
             }
@@ -135,11 +136,27 @@ export class DrawingTool extends ScenarioBase {
                 ready &= tool.view.ready;
             });
             if (ready) {
-                this.clear();
-            }
-            return ready;
+                this.clear(this.context.clearColor);
+                if (this.isSaving) {
+                    if (!this.hasPickerAdded) {
+                        this.hasPickerAdded = true;
+                        $("body").on("click", async ()=> {
+                            if (!this.ready) {
+                                await this.showDirectoryPicker();
+                                console.log("READY");
+                                this.ready = true;
+                            }
+                        });
+                    }
+                } else {
+                    this.ready = true;
+                }
+            } 
+            return this.ready;
         });
     }
+
+    
 
     // --------------------------------------
     // ----- INTERACTIONS -------------------
@@ -210,6 +227,9 @@ export class DrawingTool extends ScenarioBase {
         if (this.activeTool) {
             const result = this.activeTool.pointerUp();
         }
+        if (this.isSaving) {
+            this.saveCanvasImageSequence();
+        }
     }
 
     endDrag() {
@@ -244,8 +264,8 @@ export class DrawingTool extends ScenarioBase {
         this.toolDisplay.html(`${this.selectedToolDef.label} | size A (,.): ${this.selectedToolDef.params.sizeA} | size B (;'): ${this.selectedToolDef.params.sizeB}`)
     }
 
-    clear() {
-        this.pingPong.clear(this.context.clearColor);
+    clear(color) {
+        this.pingPong.clear(color);
     }
 
     print() {

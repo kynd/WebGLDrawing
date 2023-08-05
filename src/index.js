@@ -8,6 +8,6 @@ import { ActorsScenario } from "./js/scenarios/autoDraw/ActorsScenario";
 import { CompositionScenario } from "./js/scenarios/autoDraw/CompositionScenario";
 
 $(()=>{
-    //new DrawingTool();
-    new CompositionScenario();
+    new DrawingTool();
+    //new CompositionScenario();
 });

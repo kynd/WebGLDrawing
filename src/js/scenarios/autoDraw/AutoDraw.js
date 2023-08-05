@@ -21,7 +21,7 @@ import { BoxExpandAutoControl } from '../../toolAutoControls/BoxExpandAutoContro
 export class AutoDraw extends ScenarioBase {
     constructor() {
         super();
-        this.saving = true;
+        this.isSaving = true;
         this.setupContext(1920, 1920);
         this.setup();
         this.asyncStart();
@@ -86,7 +86,7 @@ export class AutoDraw extends ScenarioBase {
 
             if (ready) {
                 this.clear(this.context.clearColor);
-                if (this.saving) {
+                if (this.isSaving) {
                     if (!this.hasPickerAdded) {
                         this.hasPickerAdded = true;
                         $("body").on("click", async ()=> {
@@ -111,7 +111,7 @@ export class AutoDraw extends ScenarioBase {
         this.updateTools();
         this.render();
 
-        if (this.saving && this.context.frameCount < this.endSavingFrame) {
+        if (this.isSaving && this.context.frameCount < this.endSavingFrame) {
             if (this.context.frameCount % 2 == 0) {
                 this.saveCanvasImageSequence();
             }
