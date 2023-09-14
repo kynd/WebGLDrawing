@@ -21,17 +21,16 @@ export class SimpleImageScene extends SceneBase {
         const vertexShaderSource = await loadText('../shaders/common.vert');
         const fragmentShaderSource = await loadText('../shaders/simple_image.frag');
 
-
         const textureLoader = new THREE.TextureLoader();
         this.texture = await textureLoader.load(this.imagePath, 
             (texture)=> {
-                //console.log(this)
                 this.planeObject.material.uniforms.tex = {value: this.texture}
-                // This callback function will be called once the image is loaded and set as the texture's image.
+                this.context.renderer.setRenderTarget(this.renderTarget);
+                this.context.renderer.render( this.scene, this.context.camera);
+                this.context.renderer.setRenderTarget(null);
                 console.log('Texture loaded successfully!');
                 this.ready = true;
               }, undefined, function(error) {
-                // This callback function will be called if there is an error loading the image.
                 console.error('Error loading texture: ', error);
               });
 
@@ -49,6 +48,9 @@ export class SimpleImageScene extends SceneBase {
         const planeGeometry = new THREE.PlaneGeometry(this.context.width, this.context.height, 4, 4);
         this.planeObject = new THREE.Mesh(planeGeometry, this.material);
         this.scene.add( this.planeObject );
+
+        this.renderTarget = (new THREE.WebGLRenderTarget(this.context.width, this.context.height, { format: THREE.RGBAFormat, type: THREE.FloatType }));
+
     }
 
     update() {

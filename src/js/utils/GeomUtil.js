@@ -112,11 +112,16 @@ export function quadGeomDataFromCorners(corners) {
 }
 
 export function ovalGeomDataFromCorners(corners) {
-    const l0 = new Line().fromTwoPoints(corners[0], corners[2]);
-    const l1 = new Line().fromTwoPoints(corners[1], corners[3]);
-    let c = l0.getIntersectionPoint(l1);
-    if (!c) { c = corners[0].clone(); }
-    const center = new THREE.Vector3(c.x, c.y, 0);
+    let center = new THREE.Vector3();
+    for (let i = 0; i < 4; i ++) {
+        center.add(corners[i]);
+    }
+    center.multiplyScalar(0.25);
+    //const l0 = new Line().fromTwoPoints(corners[0], corners[2]);
+    //const l1 = new Line().fromTwoPoints(corners[1], corners[3]);
+    //let c = l0.getIntersectionPoint(l1);
+    //if (!c) { c = corners[0].clone(); }
+    //const center = new THREE.Vector3(c.x, c.y, 0);
     const midPoints = [];
     for (let i = 0; i < 4; i ++) {
         midPoints.push(new THREE.Vector3().lerpVectors(corners[i], corners[(i + 1) % 4], 0.5));

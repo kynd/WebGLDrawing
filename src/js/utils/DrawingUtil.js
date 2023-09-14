@@ -26,16 +26,17 @@ function addUv(arr, idx, uv) {
     arr[idx * 2 + 1] = uv[1];
 }
 
-export function stripSidesFromArray(arr, width) {
+export function stripSidesFromArray(arr, width, viewPoint) {
+    if (!viewPoint) {viewPoint = new THREE.Vector3(0, 0, 1); }
     const sides = [[], []];
     const hw = width * 0.5;
     if (arr.length >= 2) {
         for (let i = 0; i < arr.length - 1; i++) {
-            const p0 = new v(arr[i].x, arr[i].y, 0.0);
-            const p1 = new v(arr[i + 1].x, arr[i + 1].y, 0.0);
-            const dir = new v(p1.x - p0.x, p1.y - p0.y, 0.0);
+            const p0 = arr[i].clone();
+            const p1 = arr[i + 1].clone();
+            const dir = p1.clone().sub(p0);
 
-            const perp = dir.clone().applyAxisAngle(new v(0, 0, 1), Math.PI * 0.5).normalize();
+            const perp = dir.clone().applyAxisAngle(viewPoint, Math.PI * 0.5).normalize();
             sides[0].push(p0.clone().add(perp.clone().multiplyScalar(hw)));
             sides[1].push(p0.clone().add(perp.clone().multiplyScalar(-hw)));
             if (i == arr.length - 2) {

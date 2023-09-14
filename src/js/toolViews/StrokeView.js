@@ -20,7 +20,9 @@ export class StrokeView extends ToolView {
         const cp = createBezierCP(this.vertices);
         const bezierPoints = cpToBezier(cp);
         const width = this.toolParams.sizeA ? this.toolParams.sizeA * 12 : 8;
-        this.sides = stripSidesFromArray(bezierPoints, width);
+
+        const viewPoint = this.context.movingCamera ? this.context.movingCamera.position : null;
+        this.sides = stripSidesFromArray(bezierPoints, width, viewPoint);
 
         this.viewObj.geometry.dispose();
         const data = stripGeomDataFromSides(this.sides)

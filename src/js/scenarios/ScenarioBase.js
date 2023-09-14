@@ -19,7 +19,7 @@ export class ScenarioBase {
         const fov = 65;
         const hFovRadian = fov / 2 / 180 * Math.PI;
         const cz = this.context.height / 2 / Math.tan(hFovRadian);
-        this.context.camera = new THREE.PerspectiveCamera(fov, this.context.width/this.context.height, 0.1, cz * 2 );
+        this.context.camera = new THREE.PerspectiveCamera(fov, this.context.width/this.context.height, 0.1, cz * 4 );
         this.context.camera.position.z = cz;
 
         // Renderers
@@ -139,4 +139,29 @@ export class ScenarioBase {
             return [];
         }
     }
+
+    // ------------------
+
+    readRenderTargetToBuffer(renderTarget) {
+        const width = renderTarget.width;
+        const height = renderTarget.height;
+        const buffer = new Float32Array(width * height * 4);
+        this.context.renderer.readRenderTargetPixels(renderTarget, 0, 0, width, height, buffer);
+        buffer.width = width;
+        buffer.height = height;
+        return buffer;
+    }
+
+    getColorFromBuffer(buffer, x, y) {
+        x = Math.max(0, Math.min(buffer.width, Math.floor(x)));
+        y = Math.max(0, Math.min(buffer.height, Math.floor(y)));
+        const index = (y * buffer.width + x) * 4;
+        const color = new THREE.Color(
+           buffer[index],
+           buffer[index + 1],
+           buffer[index + 2],
+           buffer[index + 3]
+        );
+        return color;
+     };
 }

@@ -21,18 +21,18 @@ import { BoxExpandAutoControl } from '../../toolAutoControls/BoxExpandAutoContro
 export class AutoDraw extends ScenarioBase {
     constructor() {
         super();
-        this.isSaving = true;
+        this.isSaving = false;
         this.setupContext(1920, 1920);
         this.setup();
         this.asyncStart();
     }
 
     setup() {
-        this.endSavingFrame = 60 * 30;
+        this.endSavingFrame = 60 * 4 * 8;
         this.scene = new THREE.Scene();
         this.mainScene = new THREE.Scene();
         this.pingPong = new PingPong(this.context, '../shaders/simple_image.frag');
-        this.imageScene = new SimpleImageScene(this.context, '../img/tiger.jpg');
+        this.imageScene = new SimpleImageScene(this.context, '../img/ocean02.png');
 
         this.context.clearColor = new THREE.Color(0xFFFFFFFF);
 
@@ -73,7 +73,7 @@ export class AutoDraw extends ScenarioBase {
     createColorSelector() {
         this.colorSelector = new ColorSelector();
         this.context.colorSelector = this.colorSelector;
-        this.colorSelector.generateLibraryFromImage(24, '../img/palette01.png');
+        this.colorSelector.generateLibraryFromImage(24, '../img/palette02.png');
     }
 
     async asyncStart() {
@@ -86,6 +86,7 @@ export class AutoDraw extends ScenarioBase {
 
             if (ready) {
                 this.clear(this.context.clearColor);
+
                 if (this.isSaving) {
                     if (!this.hasPickerAdded) {
                         this.hasPickerAdded = true;
@@ -205,6 +206,10 @@ export class AutoDraw extends ScenarioBase {
         this.pingPong.renderOnCurrentRenderTarget(this.mainScene);
         this.pingPong.update();
         this.activeTool = null;
+        this.disposeAllTools();
+    }
+
+    disposeAllTools() {
         this.toolInstances.forEach(tool=>{
             tool.dispose();
         })

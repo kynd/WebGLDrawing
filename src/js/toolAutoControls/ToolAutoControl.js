@@ -59,6 +59,7 @@ export class ToolAutoControl {
     }
 
     updatePreviewObj() {
+        if (this.vertices.length == 0) { return; }
         while (this.handles.length < this.vertices.length) {
             const handle = this.createHandleObj();
             this.previewObj.add(handle);

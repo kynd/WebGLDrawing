@@ -23,7 +23,7 @@ export class CompositionScenario extends AutoDraw {
         this.cursor = new THREE.Vector3(0, 0, 0);
         this.noise = new Noise();
         this.seed = Math.random() * 1000;
-        this.context.clearColor = new THREE.Color(0xFFEEDDCC);
+        this.context.clearColor = new THREE.Color(0xFF112244);
         this.activeTool = null;
     }
 
@@ -49,20 +49,29 @@ export class CompositionScenario extends AutoDraw {
 
     makeGrid() {
         const gridPoints = [];
-        const N = 4;
+        const N = 6;
+        if (!this.gridFreq) {
+            this.gridFreq = [];
+            for (let i = 0; i <= N; i ++) {
+                this.gridFreq.push([]);
+                for (let j = 0; j <= N; j ++) {
+                    this.gridFreq[i].push(Math.random());
+                }
+            }
+        }
         for (let i = 0; i <= N; i ++) {
             gridPoints.push([]);
             for (let j = 0; j <= N; j ++) {
                 let x = (j / N - 0.5) * this.context.width;
                 let y = (i / N - 0.5) * this.context.height;
-                let sx = x, sy = y, sz = this.seed + this.context.frameCount * 0.01;
+                let sx = x, sy = y, sz = this.seed + this.context.frameCount * 0.1 * this.gridFreq[i][j];
                 if (i != 0 && i != N) {
-                    //y += this.noise.simplex3(sx, sy, sz) / N * this.context.height * 1.5;
-                    y += Math.sin((this.context.frameCount + N + j * 5 + i * 15) / 30 * Math.PI) / N * this.context.height * 0.5;
+                    y += this.noise.simplex3(sx, sy, sz) / N * this.context.height * 1.5;
+                    //y += Math.sin((this.context.frameCount + N + j * 5 + i * 15) / 30 * Math.PI) / N * this.context.height * 0.5;
                 }
                 if (j != 0 && j != N) {
-                    x += Math.sin((this.context.frameCount + N + j * 15 + i * 15) / 60 * Math.PI) / N * this.context.height * 0.5;
-                    //x += this.noise.simplex3(sx, sy, sz + 1.2345) / N * this.context.width * 1.5;
+                    //x += Math.sin((this.context.frameCount + N + j * 15 + i * 15) / 60 * Math.PI) / N * this.context.height * 0.5;
+                    x += this.noise.simplex3(sx, sy, sz + 1.2345) / N * this.context.width * 1.5;
                 }
                 gridPoints[i].push(new THREE.Vector3(x, y, 0));
             }   
