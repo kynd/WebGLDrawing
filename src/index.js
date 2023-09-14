@@ -10,6 +10,6 @@ import { Actors3DScenario } from "./js/scenarios/autoDraw/Actors3DScenario";
 
 $(()=>{
     //new DrawingTool();
-    //new CompositionScenario();
-    new Actors3DScenario();
+    new CompositionScenario();
+    //new Actors3DScenario();
 });
